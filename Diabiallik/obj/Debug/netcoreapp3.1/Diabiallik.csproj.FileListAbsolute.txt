@@ -1,0 +1,15 @@
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\Diabiallik.exe
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\Diabiallik.deps.json
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\Diabiallik.runtimeconfig.json
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\Diabiallik.runtimeconfig.dev.json
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\Diabiallik.dll
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\Diabiallik.pdb
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.AssemblyInfoInputs.cache
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.AssemblyInfo.cs
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.dll
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.pdb
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.genruntimeconfig.cache
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.csprojAssemblyReference.cache
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\bin\Debug\netcoreapp3.1\AWSSDK.Core.dll
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.csproj.CoreCompileInputs.cache
+C:\Users\Norbert\source\repos\Diabiallik\Diabiallik\obj\Debug\netcoreapp3.1\Diabiallik.csproj.CopyComplete
