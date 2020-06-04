@@ -128,19 +128,23 @@ class Gracz
     }
     private void dostepneRuchy()
     {
+        int pole = 0;
         for(int i = 0; i < pionkiGracza.Length; i++){
-            sprawdźPierwszyRuch(i, pierwszyRuchPiona, plansza, true);
-
+            pole = pionkiGracza[i].x * 7 + pionkiGracza[i].y;
+            sprawdźPierwszyRuch(pole, 0, pierwszyRuchPiona, plansza, true);
         }
 
         Console.WriteLine("Ilośc ruchów 1 = " + pierwszyRuchPiona.Count);
         Console.WriteLine("Ilośc ruchów 2 = " + drugiRuchPiona.Count);
         pokazplansze(plansza);
         //pokazplansze();
+        ruchyGracza.AddRange(pierwszyRuchPiona);
+        ruchyGracza.AddRange(drugiRuchPiona);
         Console.WriteLine("Ilość dostepnych ruchów = " + ruchyGracza.Count);
     }
-    private void sprawdźPierwszyRuch(int i, List<dynamic> lista, Pionek[] plansza3, bool ruch1)
+    private void sprawdźPierwszyRuch(int i, int j, List<dynamic> lista, Pionek[] plansza3, bool ruch1)
     {
+        Console.WriteLine("Ruch: " + ((ruch1) ? "pierwszy" : "drugi"));
         //zmiana planszy dla 2 ruchu
         //char znakk = plansza3[Z].znak;
         //if (tura2)
@@ -151,112 +155,183 @@ class Gracz
         //}
         //pokazplansze();
         // sprawdzenie ruchy piona o jedno pole w 4 strony, trzeba sprawdzić czy nie wyjdzie poza plansze
-        int pole = i + 7;  // pole - miejsce w które pionek może się przesuąć, i- miejsce na którym jest
         //pole moge na pętli zrobić z tablicą [+7, -7, +1, -1]
-        if (pole >= 0 && pole < 49)
-        {
-            if (plansza3[pole].znak == '-')
-            {
-                Console.WriteLine("Z = "+i+"DO " + pole);
-                lista.Add(new Ruch(i, pole));
-                if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
-            }
-        }
-        pole = i - 7;
-        if (pole >= 0 && pole < 49)
-        {
-            if (plansza3[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + i + "DO " + pole);
-                lista.Add(new Ruch(i, pole));
-                if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
-            }
-        }
-        pole = i + 1;//mozna przesunąć i%7!=6 na lewą strone co oszczędzi obliczeń <=0 oraz <49 w przypadku false
-        if (pole >= 0 && pole < 49 && i % 7 != 6) // tutaj dodatkowe zabezpieczenie, poniewaz plansza jest liczona 1-49, aby np nie przeskoczyć z pola 6 na 7(co jest szerokością planszy)
-        {
-            if (plansza3[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + i + "DO " + pole);
-                lista.Add(new Ruch(i, pole));
-                if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
-            }
-        }
-        pole = i - 1;//jak wyzej
-        if (pole >= 0 && pole < 49 && i % 7 != 0) // Jak wyżej
-        {
-            if (plansza3[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + i + "DO " + pole);
-                lista.Add(new Ruch(i, pole));
-                if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
-            }
-        }
 
-        //if (tura2)
-        //{
-        //    plansza3[i].znak = plansza3[Z].znak;
-        //    plansza3[Z].znak = znakk;
-        //}
+        int[] ruchPiona = { 7, -7, 1, -1 }; // kierunek w którym można ruszyć pionem
+        int pole;  // pole - miejsce w które pionek może się przesuąć, i- miejsce na którym jest
+        bool dodatkowy = true;
+        for (int kierunek = 0; kierunek<ruchPiona.Length; kierunek++)
+        {
+            dodatkowy = true;
+            //Console.Write(", " + kierunek + ": ");
+            pole = i + ruchPiona[kierunek];
+            //tutaj 2 warunki wychodzenia poza plansze( aby nie przeskoczyć przy polu +1/-1 i całą szerkość planszy i jeden rząd wyzej/niżej 
+            if(ruchPiona[kierunek] == 1)
+            {
+                if (i % 7 == 6) dodatkowy = false; // tutaj oba if, zbić w jeden i skrócić
+            }
+            if(ruchPiona[kierunek] == -1)
+            {
+                if (i % 7 == 0) dodatkowy = false;
+            }
+            if (pole >= 0 && pole < 49 && dodatkowy)
+            {
+                if (plansza3[pole].znak == '-')
+                {
+                    Console.WriteLine("Z = " + i + "DO " + pole);
+                    if (ruch1)
+                    {
+                        lista.Add(new Ruch(i, pole));
+
+                        Pionek[] nowaPlansza = new Pionek[49];
+                        for (int a = 0; a < plansza3.Length; a++)
+                        {
+                            nowaPlansza[a] = new Pionek(plansza3[a].x, plansza3[a].y, plansza3[a].znak);
+                        }
+
+                        Pionek q = nowaPlansza[pole];
+                        nowaPlansza[pole] = nowaPlansza[i];
+                        nowaPlansza[i] = q;
+
+                        Pionek nieRuszony = null;
+                        Pionek ruszony = null;
+
+                        Console.WriteLine("Pionki gracza: ");
+                        for(int a=0; a<pionkiGracza.Length; a++)
+                        {
+                            Console.Write(pionkiGracza[a].x + " : " + pionkiGracza[a].y + ",     ");
+                            if (pionkiGracza[a].x == i / 7 && pionkiGracza[a].y == i % 7)
+                            {
+                                Console.Write(" | ");
+                                nieRuszony = new Pionek(pionkiGracza[a].x, pionkiGracza[a].y, pionkiGracza[a].znak);
+                                ruszony = pionkiGracza[a];
+                            }
+                        }
+                        if(ruszony!=null) ruszony.ruszPionek(pole);
+                        pokazplansze(nowaPlansza);
+
+                        for(int a=0; a<pionkiGracza.Length; a++)
+                        {
+
+                            int pole2 = pionkiGracza[a].x * 7 + pionkiGracza[a].y;
+                            //sprawdźPierwszyRuch(i, pole, drugiRuchPiona, nowaPlansza, false);
+                            sprawdźPierwszyRuch(pole2, 0, drugiRuchPiona, nowaPlansza, false);
+                        }
+                        ruszony.ruszPionek(nieRuszony.x, nieRuszony.y);
+                    }
+                    else
+                    {
+                        lista.Add(new Ruch(i, j, j, pole)); // ruch(z, do, z2, do2)
+                    }
+                }
+            }
+        }
+        {
+            //if (pole >= 0 && pole < 49)
+            //{
+            //    if (plansza3[pole].znak == '-')
+            //    {
+            //        Console.WriteLine("Z = "+i+"DO " + pole);
+            //        lista.Add(new Ruch(i, pole));
+            //        if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
+            //    }
+            //}
+            //pole = i - 7;
+            //if (pole >= 0 && pole < 49)
+            //{
+            //    if (plansza3[pole].znak == '-')
+            //    {
+            //        Console.WriteLine("Z = " + i + "DO " + pole);
+            //        lista.Add(new Ruch(i, pole));
+            //        if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
+            //    }
+            //}
+            //pole = i + 1;//mozna przesunąć i%7!=6 na lewą strone co oszczędzi obliczeń <=0 oraz <49 w przypadku false
+            //if (pole >= 0 && pole < 49 && i % 7 != 6) // tutaj dodatkowe zabezpieczenie, poniewaz plansza jest liczona 1-49, aby np nie przeskoczyć z pola 6 na 7(co jest całą szerokością planszy)
+            //{
+            //    if (plansza3[pole].znak == '-')
+            //    {
+            //        Console.WriteLine("Z = " + i + "DO " + pole);
+            //        lista.Add(new Ruch(i, pole));
+            //        if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
+            //    }
+            //}
+            //pole = i - 1;//jak wyzej
+            //if (pole >= 0 && pole < 49 && i % 7 != 0) // Jak wyżej
+            //{
+            //    if (plansza3[pole].znak == '-')
+            //    {
+            //        Console.WriteLine("Z = " + i + "DO " + pole);
+            //        lista.Add(new Ruch(i, pole));
+            //        if (ruch1) { sprawdźDrugiRuch(i, pole, drugiRuchPiona, plansza3, false); }
+            //    }
+            //}
+
+            //if (tura2)
+            //{
+            //    plansza3[i].znak = plansza3[Z].znak;
+            //    plansza3[Z].znak = znakk;
+            //}
+        }
     }
-    private void sprawdźDrugiRuch(int Z, int Do, List<dynamic> lista, Pionek[] plansza3, bool tura2)
-    {// tak wiem, że kod się duplikuje, optymalizacja potem
+    //private void sprawdźDrugiRuch(int Z, int Do, List<dynamic> lista, Pionek[] plansza3, bool tura2)
+    //{// tak wiem, że kod się duplikuje, optymalizacja potem
 
-        Pionek[] nowaPlansza = new Pionek[49];
-        //Array.ConstrainedCopy(plansza3, 0, nowaPlansza, 0, 49);
-        // chuj kurwa, jebać C#, ja chce JAVE!!!, tu sie nie da skopiowac tablicy -,-
+    //    Pionek[] nowaPlansza = new Pionek[49];
+    //    //Array.ConstrainedCopy(plansza3, 0, nowaPlansza, 0, 49);
+    //    // chuj kurwa, jebać C#, ja chce JAVE!!!, tu sie nie da skopiowac tablicy -,-
 
-        for (int j = 0; j < plansza3.Length; j++)
-        {
-            nowaPlansza[j] = new Pionek(plansza3[j].x, plansza3[j].y, plansza3[j].znak);
-        }
-        //zmiana planszy dla 2 ruchu
-        char znakk = nowaPlansza[Z].znak;
-        if (!tura2)
-        {
-            nowaPlansza[Z].znak = nowaPlansza[Do].znak;
-            nowaPlansza[Do].znak = znakk;
-            pokazplansze(nowaPlansza);
-        }
-        int i = Z;
-        int pole = Do + 7;
-        if (pole >= 0 && pole < 49)
-        {
-            if (nowaPlansza[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + i + "DO " + pole);
-                lista.Add(new Ruch(Z, Do, Do, pole));
-            }
-        }
-        pole = Do - 7;
-        if (pole >= 0 && pole < 49)
-        {
-            if (nowaPlansza[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + Do + "DO " + pole);
-                lista.Add(new Ruch(Z, Do, Do, pole));
-            }
-        }
-        pole = Do + 1;
-        if (pole >= 0 && pole < 49 && i % 7 != 6) 
-        {
-            if (nowaPlansza[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + Do + "DO " + pole);
-                lista.Add(new Ruch(Z, Do, Do, pole));
-            }
-        }
-        pole = Do - 1;
-        if (pole >= 0 && pole < 49 && i % 7 != 0)
-        {
-            if (nowaPlansza[pole].znak == '-')
-            {
-                Console.WriteLine("Z = " + Do + "DO " + pole);
-                lista.Add(new Ruch(Z, Do, Do, pole));
-            }
-        }
+    //    for (int j = 0; j < plansza3.Length; j++)
+    //    {
+    //        nowaPlansza[j] = new Pionek(plansza3[j].x, plansza3[j].y, plansza3[j].znak);
+    //    }
+    //    //zmiana planszy dla 2 ruchu
+    //    char znakk = nowaPlansza[Z].znak;
+    //    if (!tura2)
+    //    {
+    //        nowaPlansza[Z].znak = nowaPlansza[Do].znak;
+    //        nowaPlansza[Do].znak = znakk;
+    //        pokazplansze(nowaPlansza);
+    //    }
+    //    int i = Z;
+    //    int pole = Do + 7;
+    //    if (pole >= 0 && pole < 49)
+    //    {
+    //        if (nowaPlansza[pole].znak == '-')
+    //        {
+    //            Console.WriteLine("Z = " + i + "DO " + pole);
+    //            lista.Add(new Ruch(Z, Do, Do, pole));
+    //        }
+    //    }
+    //    pole = Do - 7;
+    //    if (pole >= 0 && pole < 49)
+    //    {
+    //        if (nowaPlansza[pole].znak == '-')
+    //        {
+    //            Console.WriteLine("Z = " + Do + "DO " + pole);
+    //            lista.Add(new Ruch(Z, Do, Do, pole));
+    //        }
+    //    }
+    //    pole = Do + 1;
+    //    if (pole >= 0 && pole < 49 && i % 7 != 6) 
+    //    {
+    //        if (nowaPlansza[pole].znak == '-')
+    //        {
+    //            Console.WriteLine("Z = " + Do + "DO " + pole);
+    //            lista.Add(new Ruch(Z, Do, Do, pole));
+    //        }
+    //    }
+    //    pole = Do - 1;
+    //    if (pole >= 0 && pole < 49 && i % 7 != 0)
+    //    {
+    //        if (nowaPlansza[pole].znak == '-')
+    //        {
+    //            Console.WriteLine("Z = " + Do + "DO " + pole);
+    //            lista.Add(new Ruch(Z, Do, Do, pole));
+    //        }
+    //    }
 
-    }
+    //}
     private void pokazplansze()
     {
         Console.WriteLine("\nPokaż plansze: " + nazwa);
@@ -285,28 +360,38 @@ class Gracz
 
 class Pionek
 {
+    public int pole = -1;
     public char znak; 
     public int 
         x = -1, 
         y = -1;
-    bool piłka = false;
-    Gracz gracz = null;
+    //bool piłka = false; // CO do XD
+    //Gracz gracz = null;
     public Pionek(int a, int b, char c)
     {
+        this.pole = a * 7 + b;
         this.x = a;
         this.y = b;
         this.znak = c;
     }
     public Pionek(Pionek a)
     {
+        pole = a.pole;
         this.x = a.x;
         this.y = a.y;
         this.znak = a.znak;
     }
     public void ruszPionek(int a, int b)
     {
+        this.pole = a * 7 + b;
         this.x = a;
         this.y = b;
+    }
+    public void ruszPionek(int pole)
+    {
+        this.pole = pole;
+        this.x = pole/7;
+        this.y = pole%7;
     }
 }
 
