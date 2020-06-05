@@ -11,116 +11,108 @@ namespace Diabiallik
         static void Main(string[] args)
         {
             Console.WriteLine("Diaballik");
-            Gra Diaballik = new Gra();
+            Diaballik diaballik = new Diaballik();
+            diaballik.start();
         }
     }
 }
 
-class Gra
+class Diaballik
 {
-    public Pionek[] 
-        plansza = new Pionek[49], 
-        odwróconaPlansza = new Pionek[49];
+    bool gameEnd = false;
+    public Pionek[]
+        mainBoard = new Pionek[49];
     public Gracz 
-        gracz1, 
-        gracz2;
-    bool koniecGry = false;
-    public Gra()
+        Player_1, 
+        Player_2;
+    public Diaballik()
     {
         Console.WriteLine("Nowa Gra");
-        inicjujplansze();
-        pokazplansze();
+        newBoard();
+        showBoard();
 
-        gracz1 = new Gracz("Gracz_1", plansza, 'x');
-        odwrocPlansze();
-        gracz2 = new Gracz("Gracz_2", plansza, 'y');
-
-        pokazplansze();
-        int i = 0;
+        Player_1 = new Gracz("Gracz_1", mainBoard, 'x');
+        reverseBoard();
+        Player_2 = new Gracz("Gracz_2", mainBoard, 'y');
+        showBoard();
+    }
+    public void start()
+    {
         DateTime timeStart = DateTime.Now;
-        while (!koniecGry)
+        while (!gameEnd)
         {
-            odwrocPlansze();
-            koniecGry = gracz1.ruch();
-            pokazplansze();
-            if (koniecGry) break;
-            odwrocPlansze();
-            koniecGry = gracz2.ruch();
-            //pokazplansze();
-
-            //i++;
-            //if (i == 100) break;
-            //break;
+            reverseBoard();
+            gameEnd = Player_1.ruch();
+            //Console.Clear();
+            //showBoard();
+            //System.Threading.Thread.Sleep(200);
+            if (gameEnd) break;
+            reverseBoard();
+            gameEnd = Player_2.ruch();
+            //showBoard();
         }
-        pokazplansze();
+        showBoard();
         DateTime timeEnd = DateTime.Now;
-        Console.WriteLine("Ilość dostepnych ruchów = " + gracz1.iloscRuchow() + ", " + gracz2.iloscRuchow());
+        //Console.WriteLine("Ilość dostepnych ruchów = " + gracz1.iloscRuchow() + ", " + gracz2.iloscRuchow());
         Console.WriteLine("KONIEC: " + timeEnd.Subtract(timeStart));
     }
-    private void inicjujplansze()
+    private void newBoard()
     {
         Console.WriteLine("Inicjuj plansze");
-        for (int i = 0; i < plansza.Length; i++)
+        for (int i = 0; i < mainBoard.Length; i++)
         {
-            plansza[i] = new Pionek(i, i%7, '-');
+            mainBoard[i] = new Pionek(i, i%7, '-');
         }
     }
-    private void pokazplansze()
+    private void showBoard()
     {
         Console.WriteLine("Pokaż plansze");
-        for(int i = plansza.Length-1; i >= 0; i--)
+        for(int i = mainBoard.Length-1; i >= 0; i--)
         {
-            Console.Write(plansza[i].znak + "  ");
+            Console.Write(mainBoard[i].pawnSymbol + "  ");
             if (i % 7 == 0)
             {
                 Console.WriteLine("");
             }
         }
-
-        Console.WriteLine("");
-        Console.WriteLine("");
         Console.WriteLine("");
     }
-    private void odwrocPlansze()
+    private void reverseBoard()
     {
-        Array.Reverse(plansza);
+        Array.Reverse(mainBoard);
     }
 }
 
-
-// JAK WRÓCE, zrobić tablice, na niej 4 pole do sprawdzania ruchu, 
-// zredukuje to 4 ify do 1
-// i zrobić po 1 ruchu znowu pętle na 7 pionow dla 2 ruchu
 class Gracz
 {
-    public char znak;
-    string nazwa = "";
+    public char playerSymbol;
+    string playerName = "";
     public Pionek[] pionkiGracza = new Pionek[7];
     public Pionek[] 
-        plansza,
+        board,
         plansza2;
     public List<dynamic> 
-        ruchyGracza = new List<dynamic>(), 
+        playerMoves = new List<dynamic>(), 
         pierwszyRuchPiona = new List<dynamic>(), // pierwszy i 2 ruch można zrobić na zwyklej tablicy,   4 dla 1 i 16 dla drugiegi ruchu, po odjeciu powtorzen będzie chyba 12 ruchów + 4 'krótkie'
         drugiRuchPiona = new List<dynamic>();
     bool koniec = false;
-    public Gracz(string naz, Pionek[] p, char znak)
+    public Gracz(string name, Pionek[] p, char symbol)
     {
-        this.znak = znak;
-        this.nazwa = naz;
-        this.plansza = p;
+        this.playerSymbol = symbol;
+        this.playerName = name;
+        this.board = p;
         this.plansza2 = p;
 
         for(int i=0; i<7; i++)
         {
-            plansza[i] = pionkiGracza[i] = new Pionek(0, i, znak);
+            board[i] = pionkiGracza[i] = new Pionek(0, i, playerSymbol);
         }
-        plansza[3] = pionkiGracza[3] = new Pionek(0, 3, Char.ToUpper(znak));
+        board[3] = pionkiGracza[3] = new Pionek(0, 3, Char.ToUpper(playerSymbol));
         
     }
     public int iloscRuchow()
     {
-        return ruchyGracza.Count;
+        return playerMoves.Count;
     }
     public bool ruch()
     {
@@ -134,15 +126,10 @@ class Gracz
         int pole = 0;
         for(int i = 0; i < pionkiGracza.Length; i++){
             pole = pionkiGracza[i].x * 7 + pionkiGracza[i].y;
-            sprawdźPierwszyRuch(pole, 0, pierwszyRuchPiona, plansza, true, 0);
+            sprawdźPierwszyRuch(pole, 0, pierwszyRuchPiona, board, true, 0);
         }
 
-        //Console.WriteLine("Ilośc ruchów 1 = " + pierwszyRuchPiona.Count);
-        //Console.WriteLine("Ilośc ruchów 2 = " + drugiRuchPiona.Count);
-        //pokazplansze(plansza);
-        //pokazplansze();
-        //ruchyGracza.AddRange(pierwszyRuchPiona);
-        ruchyGracza.AddRange(drugiRuchPiona);
+        playerMoves.AddRange(drugiRuchPiona);
         pierwszyRuchPiona.Clear();
         drugiRuchPiona.Clear();
 
@@ -169,7 +156,7 @@ class Gracz
             
             if (pole >= 0 && pole < 49 && dodatkowy)
             {
-                if (plansza3[pole].znak == '-')
+                if (plansza3[pole].pawnSymbol == '-')
                 {
                     //Console.WriteLine("Z = " + i + "DO " + pole);
                     if (ruch1)
@@ -179,7 +166,7 @@ class Gracz
                         Pionek[] nowaPlansza = new Pionek[49];
                         for (int a = 0; a < plansza3.Length; a++)
                         {
-                            nowaPlansza[a] = new Pionek(plansza3[a].x, plansza3[a].y, plansza3[a].znak);
+                            nowaPlansza[a] = new Pionek(plansza3[a].x, plansza3[a].y, plansza3[a].pawnSymbol);
                         }
 
                         Pionek q = nowaPlansza[pole];
@@ -195,7 +182,7 @@ class Gracz
                             if (pionkiGracza[a].x == i / 7 && pionkiGracza[a].y == i % 7)
                             {
                                 //Console.Write(" | ");
-                                nieRuszony = new Pionek(pionkiGracza[a].x, pionkiGracza[a].y, pionkiGracza[a].znak);
+                                nieRuszony = new Pionek(pionkiGracza[a].x, pionkiGracza[a].y, pionkiGracza[a].pawnSymbol);
                                 ruszony = pionkiGracza[a];
                             }
                         }
@@ -221,31 +208,31 @@ class Gracz
     }
     public void wykonajRuch()
     {
-        int x = new Random().Next(ruchyGracza.Count);
+        int x = new Random().Next(playerMoves.Count);
         Console.WriteLine(x);
-        Ruch wykonaj = ruchyGracza[x];
+        Ruch wykonaj = playerMoves[x];
 
         Console.WriteLine(wykonaj);
         pokażPionki();
         if(wykonaj.do_2 == -1)
         {
             //Console.WriteLine("Krótki ruch");
-            Pionek a = plansza[wykonaj.do_1];
-            plansza[wykonaj.do_1] = plansza[wykonaj.z_1];
-            plansza[wykonaj.z_1] = a;
+            Pionek a = board[wykonaj.do_1];
+            board[wykonaj.do_1] = board[wykonaj.z_1];
+            board[wykonaj.z_1] = a;
         }
         else
         {
             //Console.WriteLine("Długi ruch");
-            Pionek pion = plansza[wykonaj.do_1];
-            plansza[wykonaj.do_1] = plansza[wykonaj.z_1];
-            plansza[wykonaj.z_1] = pion;
+            Pionek pion = board[wykonaj.do_1];
+            board[wykonaj.do_1] = board[wykonaj.z_1];
+            board[wykonaj.z_1] = pion;
 
 
 
-            pion = plansza[wykonaj.do_2];
-            plansza[wykonaj.do_2] = plansza[wykonaj.z_2];
-            plansza[wykonaj.z_2] = pion;
+            pion = board[wykonaj.do_2];
+            board[wykonaj.do_2] = board[wykonaj.z_2];
+            board[wykonaj.z_2] = pion;
 
 
             if (wykonaj.do_1 > 41) koniec = true;
@@ -255,16 +242,16 @@ class Gracz
             {
                 if (pionkiGracza[a].x == wykonaj.z_1 / 7 && pionkiGracza[a].y == wykonaj.z_1 % 7)
                 {
-                    pionkiGracza[a] = new Pionek(wykonaj.do_1, pionkiGracza[a].znak);
+                    pionkiGracza[a] = new Pionek(wykonaj.do_1, pionkiGracza[a].pawnSymbol);
                 }
                 if (pionkiGracza[a].x == wykonaj.z_2 / 7 && pionkiGracza[a].y == wykonaj.z_2 % 7)
                 {
-                    pionkiGracza[a] = new Pionek(wykonaj.do_2, pionkiGracza[a].znak);
+                    pionkiGracza[a] = new Pionek(wykonaj.do_2, pionkiGracza[a].pawnSymbol);
                 }
             }
         }
-        Console.Write("Ruchy:" + ruchyGracza.Count + ",   //");
-        ruchyGracza.Clear();
+        Console.Write("Ruchy:" + playerMoves.Count + ",   //");
+        playerMoves.Clear();
     }
     public void pokażPionki()
     {
@@ -276,10 +263,10 @@ class Gracz
     }
     private void pokazplansze()
     {
-        Console.WriteLine("\nPokaż plansze: " + nazwa);
-        for (int i = plansza.Length - 1; i >= 0; i--)
+        Console.WriteLine("\nPokaż plansze: " + playerName);
+        for (int i = board.Length - 1; i >= 0; i--)
         {
-            Console.Write(plansza[i].znak + "  ");
+            Console.Write(board[i].pawnSymbol + "  ");
             if (i % 7 == 0)
             {
                 Console.WriteLine("");
@@ -288,10 +275,10 @@ class Gracz
     }
     private void pokazplansze(Pionek[] plansza4)
     {
-        Console.WriteLine("\nPokaż plansze: " + nazwa);
+        Console.WriteLine("\nPokaż plansze: " + playerName);
         for (int i = plansza4.Length - 1; i >= 0; i--)
         {
-            Console.Write(plansza4[i].znak + "  ");
+            Console.Write(plansza4[i].pawnSymbol + "  ");
             if (i % 7 == 0)
             {
                 Console.WriteLine("");
@@ -303,7 +290,7 @@ class Gracz
 class Pionek
 {
     public int pole = -1;
-    public char znak; 
+    public char pawnSymbol; 
     public int 
         x = -1, 
         y = -1;
@@ -314,18 +301,18 @@ class Pionek
         this.pole = a * 7 + b;
         this.x = a;
         this.y = b;
-        this.znak = c;
+        this.pawnSymbol = c;
     }
     public Pionek(Pionek a)
     {
         this.pole = a.pole;
         this.x = a.x;
         this.y = a.y;
-        this.znak = a.znak;
+        this.pawnSymbol = a.pawnSymbol;
     }
-    public Pionek(int pole, char znak)
+    public Pionek(int pole, char token)
     {
-        this.znak = znak;
+        this.pawnSymbol = token;
         this.pole = pole;
         this.x = pole / 7;
         this.y = pole % 7;
@@ -389,21 +376,3 @@ class Ruch
         return base.ToString() + " " + z_1 + ":" + do_1 + ", " + z_2 + ":" + do_2;
     }
 }
-
-
-
-//for (int i = 0; i < pierwszyRuchPiona.Count; i++)
-//{
-//    plansza2 = new Pionek[49];
-//    for (int j = 0; j < plansza.Length; j++)
-//    {
-//        plansza2[j] = new Pionek(plansza[j]);
-
-//    }
-//    sprawdźRuchyPiona(pierwszyRuchPiona[i].Do, pierwszyRuchPiona[i].Z, 0, drugiRuchPiona, plansza2, true);
-
-//    Console.WriteLine("Ilośc ruchów 2 = " + drugiRuchPiona.Count);
-//    ruchyGracza.Add(drugiRuchPiona);
-//    drugiRuchPiona.Clear();
-//}
-
