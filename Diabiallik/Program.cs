@@ -1,4 +1,4 @@
-﻿using Amazon.MissingTypes;
+﻿using Diabiallik;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +20,7 @@ namespace Diabiallik
 
 class Diaballik
 {
-    bool displayData = true;
+    bool displayData = false;
     bool gameEnd = false;
     public Pawn[]
         mainBoard = new Pawn[49];
@@ -35,29 +35,32 @@ class Diaballik
         reverseBoard();
         Player_2 = new Gracz("Gracz_2", mainBoard, 'y');
         reverseBoard();
-        //showBoard();
+        showBoard();
     }
     public void start()
     {
+        Console.WriteLine("START_GAME");
         DateTime timeStart = DateTime.Now;
         int i = 0;
         while (!gameEnd)
         {
             i++;
-            //reverseBoard();
             gameEnd = Player_1.nextMove();
+            showBoardbyNumbers();
+            showBoard();
+            reverseBoard();
             //Console.Clear();
             if (displayData)
             {
-                showBoard();
             }
             //System.Threading.Thread.Sleep(400);
-            showBoardbyNumbers();
             if (i>10)break;
-            //if (gameEnd) break;
-            //reverseBoard();
+            if (gameEnd) break;
+            //showBoardbyNumbers();
             //gameEnd = Player_2.nextMove();
-            ////showBoard();
+            ////showBoardbyNumbers();
+            //showBoard();
+            reverseBoard();
         }
         //showBoard();
         DateTime timeEnd = DateTime.Now;
@@ -90,7 +93,7 @@ class Diaballik
         Console.WriteLine("Pokaż plansze");
         for (int i = mainBoard.Length - 1; i >= 0; i--)
         {
-            if (i < 10)
+            if (mainBoard[i].field < 10)
             {
                 Console.Write(" " + mainBoard[i].field + "  ");
             }
@@ -131,7 +134,7 @@ class Gracz
     public Gracz(string name, Pawn[] p, char symbol)
     {
         this.playerSymbol = symbol;
-        this.playerSymbolUpper = Char.ToUpper((char)79);
+        this.playerSymbolUpper = Char.ToUpper(playerSymbol);
         this.playerName = name;
         this.mainBoard = p;
 
@@ -139,21 +142,25 @@ class Gracz
         {
             mainBoard[i] = playerPawns[i] = new Pawn(mainBoard[i].field, playerSymbol);
         }
-
         ballPawn = mainBoard[3] = playerPawns[3] = new Pawn(mainBoard[3].field, playerSymbolUpper);
     }
     public bool nextMove()
     {
+        Console.WriteLine("NEW MOVE " + playerSymbolUpper);
+        //showBoard();
+        //showPawns();
         availableMoves();
         rateMoves();
         makeMove();
+        //showPawns();
         //showBoard();
         passBall();
-        showBoard();
+        //showBoard();
         return gameEnd;
     }
     private void availableMoves()
     {
+        playerMoves.Clear();
         for (int i = 0; i < playerPawns.Length; i++)
         {
             checkAvailableMoves(mainBoard, playerPawns, shortMove, true, playerPawns[i].field, 0, 0);
@@ -165,28 +172,33 @@ class Gracz
     }
     private void checkAvailableMoves(Pawn[] board, Pawn[] playerPawns, List<dynamic> lista, bool stepOne, int from_2, int from_1, int to_1)
     {
-        int[] moveDirection = { 7, -1, 1 }; // bez ruchu w tył -7   //int[] moveDirection = { 7, -7, 1, -1 }; // kierunek w którym można ruszyć pionem
+        //Console.WriteLine("New TRY: " + from_2 + ", ");
+        int[] moveDirection = { 7, -1, 1, -7 };// kierunek w którym można ruszyć pionem
         int to_2;  // pole - miejsce w które pionek może się przesunąć, from_2 - miejsce na którym jest
-        bool outsideBoard;
+        bool insideBoard;
         for (int direction = 0; direction < moveDirection.Length; direction++)
         {
-            outsideBoard = true;
+            insideBoard = true;
             to_2 = from_2 + moveDirection[direction];
-            if (moveDirection[direction] == 1 && from_2 % 7 == 6) outsideBoard = false;  //tutaj 2 warunki wychodzenia poza plansze(aby nie przeskoczyć przy polu +1/-1 o całą szerkość planszy będącej jeden rząd wyżej/niżej  
-            if (moveDirection[direction] == -1 && from_2 % 7 == 0) outsideBoard = false;
+            if (moveDirection[direction] == 1 && from_2 % 7 == 6) insideBoard = false;  //tutaj 2 warunki wychodzenia poza plansze(aby nie przeskoczyć przy polu +1/-1 o całą szerkość planszy będącej jeden rząd wyżej/niżej  
+            if (moveDirection[direction] == -1 && from_2 % 7 == 0) insideBoard = false;
 
             //board[from_2].pawnSymbol != playerSymbolUpper  blokuje ruch pionka z piłką
-            //showBoard(board);
-            if (to_2 >= 0 && to_2 < 49 && outsideBoard && board[to_2].pawnSymbol == '-' && board[from_2].pawnSymbol != playerSymbolUpper)
+            if (to_2 >= 0 && to_2 < 49 && insideBoard && board[to_2].pawnSymbol == '-' && board[mainBoard[from_2].field].pawnSymbol != playerSymbolUpper)
             {
                 if (stepOne)
                 {   //Console.WriteLine("Z = " + i + "DO " + pole);
                     //lista.Add(new Move(from_2, to_2)); // chwilowo wyłączone krótkie ruchy
                     Pawn[] newBoardForSecoundMove = deepCopyBoard(board);
                     Pawn[] newUserPawnsForSecoundMove = deepCopyPlayerPawns(playerPawns);
-                    swapBoardPawns(newBoardForSecoundMove, from_2, to_2);
-                    swapPlayerPawns(newUserPawnsForSecoundMove, from_2, to_2);
 
+                    swapBoardPawns(newBoardForSecoundMove, mainBoard[from_2].field, mainBoard[to_2].field);
+                    //swapPlayerPawns(newUserPawnsForSecoundMove, newBoardForSecoundMove, mainBoard[from_2].field, mainBoard[to_2].field);
+
+                    swapPlayerPawns(newUserPawnsForSecoundMove, newBoardForSecoundMove, mainBoard[from_2].field, mainBoard[to_2].field);
+                    //swapBoardPawns(newBoardForSecoundMove, from_2, to_2);
+                    //showBoard(newBoardForSecoundMove);
+                    //showPawns(newUserPawnsForSecoundMove);
                     for (int i = 0; i < playerPawns.Length; i++)
                     {
                         checkAvailableMoves(newBoardForSecoundMove, newUserPawnsForSecoundMove, longMove, false, newUserPawnsForSecoundMove[i].field, from_2, to_2);
@@ -194,6 +206,7 @@ class Gracz
                 }
                 else
                 {
+                    //Console.WriteLine("Adding new move: from1- " + from_1 + "  to1- " + to_1 + "  from2- " + from_2 + "  to2- " + to_2);
                     lista.Add(new Move(from_1, to_1, from_2, to_2));
                 }
             }
@@ -204,7 +217,7 @@ class Gracz
         findPossiblePassingField();
         foreach (Move move in playerMoves)
         {
-            Console.Write("   move: " + move.from_1 + ":" + move.to_1 + ", " + move.from_2 + ":" + move.to_2);
+            //Console.WriteLine("Move: " + move.from_1 + ":" + move.to_1 + ", " + move.from_2 + ":" + move.to_2);
             if (move.to_2 > move.from_1 + 5) { move.score += 1000; } // skok o linie w przód
             if (move.to_2 > move.from_1 + 10) { move.score += 5000; } // skok o 2 linie w przód
             foreach (Pawn passingMove in possiblePassingField)//sprawdzanie czy da się wejsć na pole na którym może nastapić podanie piłki
@@ -226,7 +239,6 @@ class Gracz
             //}
         }
         Console.WriteLine();
-        Console.WriteLine();
         playerMoves.Sort((x,y)=>y.score.CompareTo(x.score));
     }
     public void findPossiblePassingField()
@@ -234,85 +246,154 @@ class Gracz
         possiblePassingField.Clear(); 
         possiblePassingPawns.Clear();
         if(displayData)Console.WriteLine("Ball field and symbol: " + ballPawn.field + ". " + ballPawn.pawnSymbol);
+
+
         //tu będzie łopatologicznie bo czemu by nie
-        for (int i = ballPawn.field + 1; i < ((ballPawn.field / 7) * 7 + 7); i++)
-        {//przeszukiwanie w lewo
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
+
+
+        int[] start = new int[] {
+            ballPawn.field + 1,
+            ballPawn.field + 7,
+            ballPawn.field + 8,
+            ballPawn.field + 6,
+            ballPawn.field - 1,
+            ballPawn.field - 7,
+            ballPawn.field - 6,
+            ballPawn.field - 8
+        };
+        int[] finish = new int[] {
+            49,
+            49,
+            49,
+            49,
+            (ballPawn.field / 7),
+            0,
+            0,
+            0
+        };
+        int[] jump = new int[] { 1, 7, 8, 6, -1, -7, -6, -8};
+
+        for (int i = 0; i < 4; i++)
+        {
+            for (int y = start[i]; y < finish[i]; y+=jump[i])
+            {//przeszukiwanie w lewo
+                if (y % 7 == 6 || y % 7 == 0)
+                {
+                    possiblePassingField.Add(new Pawn(mainBoard[y]));
+                    break;
+                }
+                if (mainBoard[y].pawnSymbol != '-' && mainBoard[y].pawnSymbol != playerSymbol)
+                {
+                    break;
+                }
+                possiblePassingField.Add(new Pawn(mainBoard[y]));
             }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
         }
-        for (int i = ballPawn.field - 1; i >= (ballPawn.field / 7); i--)
-        {//przeszukiwanie w prawo
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
+        for (int i = 4; i < 8; i++)
+        {
+            for (int y = start[i]; y >= finish[i]; y += jump[i])
+            {//przeszukiwanie w lewo
+                if(y < 0)
+                {
+                    break;
+                }
+                if (y % 7 == 6 || y % 7 == 0)
+                {
+                    possiblePassingField.Add(new Pawn(mainBoard[y]));
+                    break;
+                }
+                if (mainBoard[y].pawnSymbol != '-' && mainBoard[y].pawnSymbol != playerSymbol)
+                {
+                    break;
+                }
+                possiblePassingField.Add(new Pawn(mainBoard[y]));
             }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
-        }
-        for (int i = ballPawn.field + 7; i < 49; i += 7)
-        {//przeszukiwanie w góre
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
-            }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
-        }
-        for (int i = ballPawn.field - 7; i > 0; i -= 7)
-        {//przeszukiwanie w dół
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
-            }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
-        }
-        for (int i = ballPawn.field + 8; i < 49; i += 8)
-        {//przeszukiwanie w lewo na ukos w góre
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
-            }
-            possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
-            if (i % 7 == 6) break;
-        }
-        for (int i = ballPawn.field - 6; i > 0; i -= 6)
-        {//przeszukiwanie w lewo na ukos w dół
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
-            }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
-            if (i % 7 == 6) break;
-        }
-        for (int i = ballPawn.field + 6; i < 49; i += 6)
-        {//przeszukiwanie w prawo na ukos w góre
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
-            }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
-            if (i % 7 == 0) break;
-        }
-        for (int i = ballPawn.field - 8; i > 0; i -= 8)
-        {//przeszukiwanie w prawo na ukos w dół
-            if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
-            {
-                break;
-            }
-            possiblePassingField.Add(new Pawn(mainBoard[i]));
-            if (i % 7 == 0) break;
         }
 
+
+
+
+
+        //for (int i = ballPawn.field + 1; i < ((ballPawn.field / 7) * 7 + 7); i++)
+        //{//przeszukiwanie w lewo
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    Console.WriteLine(" I = " + i);
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //}
+        //for (int i = ballPawn.field - 1; i >= (ballPawn.field / 7); i--)
+        //{//przeszukiwanie w prawo
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //}
+        //for (int i = ballPawn.field + 7; i < 49; i += 7)
+        //{//przeszukiwanie w góre
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //}
+        //for (int i = ballPawn.field - 7; i > 0; i -= 7)
+        //{//przeszukiwanie w dół
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //}
+        //for (int i = ballPawn.field + 8; i < 49; i += 8)
+        //{//przeszukiwanie w lewo na ukos w góre
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //    if (i % 7 == 6) break;
+        //}
+        //for (int i =ballPawn.field - 6; i > 0; i -= 6)
+        //{//przeszukiwanie w lewo na ukos w dół
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //    if (i % 7 == 6) break;
+        //}
+        //for (int i = ballPawn.field + 6; i < 49; i += 6)
+        //{//przeszukiwanie w prawo na ukos w góre
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //    if (i % 7 == 0) break;
+        //}
+        //for (int i = ballPawn.field - 8; i > 0; i -= 8)
+        //{//przeszukiwanie w prawo na ukos w dół
+        //    if (mainBoard[i].pawnSymbol != '-' && mainBoard[i].pawnSymbol != playerSymbol)
+        //    {
+        //        break;
+        //    }
+        //    possiblePassingField.Add(new Pawn(mainBoard[i].field, mainBoard[i].pawnSymbol));
+        //    if (i % 7 == 0) break;
+        //}
+
+        possiblePassingPawns.Clear();
         possiblePassingField.Sort((x, y) => y.field.CompareTo(x.field));
-        if (displayData) Console.WriteLine("Pssible passing field: ");
+        Console.WriteLine("Pssible passing field: ");
         foreach (Pawn p in possiblePassingField)
         {
-            if (displayData) Console.Write(p.field + ", ");
-            //if (p.pawnSymbol == playerSymbol)
-            //{
-            //    possiblePassingPawns.Add(new Pawn(p));
-            //}
+            Console.Write(p.field + ", ");
+            if (p.pawnSymbol == playerSymbol)
+            {
+                possiblePassingPawns.Add(new Pawn(p));
+            }
         }
         if (displayData) Console.WriteLine();
         if (displayData) Console.WriteLine("possible pass field " + possiblePassingField.Count);
@@ -321,46 +402,67 @@ class Gracz
     public void makeMove()
     {
         //int x = new Random().Next(playerMoves.Count);
-        int x = new Random().Next(5);
-        Move wykonaj = playerMoves[x];
+        int mov = new Random().Next(playerMoves.Count-1);
+        Move wykonaj = playerMoves[mov];
+        //foreach(Move m in playerMoves)
+        //{
+        //    Console.WriteLine("Adding new move: from1- " + m.from_1 + "  to1- " + m.to_1 + "  from2- " + m.from_2 + "  to2- " + m.to_2);
+        //}
 
         if (displayData) Console.WriteLine("Wykonaj ruch: " + wykonaj);
+        int x = 0;
+        if (mainBoard[0].field > 30) x = 48;
         if(wykonaj.to_2 == -1)
         {//dla jednego krótkiego ruchu, nie wiadomo, czy będą wykonywane
             swapBoardPawns(mainBoard, wykonaj.from_1, wykonaj.to_1);
             swapPlayerPawns(playerPawns, wykonaj.from_1, wykonaj.to_1);
-            if (wykonaj.to_1 > 41) gameEnd = true;
+            //if (wykonaj.to_1 > 41) gameEnd = true;
             showPawns();
         }
-        else
+        else 
         {
-            showPawns();
-            swapBoardPawns(mainBoard, wykonaj.from_1, wykonaj.to_1);
-            swapBoardPawns(mainBoard, wykonaj.from_2, wykonaj.to_2);
-            swapPlayerPawns(playerPawns, wykonaj.from_1, wykonaj.to_1);
-            swapPlayerPawns(playerPawns, wykonaj.from_2, wykonaj.to_2);
-            showPawns();
-            //swapBoardPawns(mainBoard, wykonaj.from_1, wykonaj.to_2);
-            //swapPlayerPawns(playerPawns, wykonaj.from_1, wykonaj.to_2);
-            if (wykonaj.to_1 > 41) gameEnd = true;
-            if (wykonaj.to_2 > 41) gameEnd = true;
-            //showPawns();
-        }
-        Console.WriteLine();
+            if (x < 30)
+            {
+                //showPawns();
+                swapBoardPawns(mainBoard, wykonaj.from_1, wykonaj.to_1);
+                swapBoardPawns(mainBoard, wykonaj.from_2, wykonaj.to_2);
+                swapPlayerPawns(playerPawns, mainBoard[wykonaj.from_1].field, mainBoard[wykonaj.to_1].field);
+                swapPlayerPawns(playerPawns, mainBoard[wykonaj.from_2].field, mainBoard[wykonaj.to_2].field);
+                //showPawns();
+                //swapBoardPawns(mainBoard, wykonaj.from_1, wykonaj.to_2);
+                //swapPlayerPawns(playerPawns, wykonaj.from_1, wykonaj.to_2);
+                if (wykonaj.to_1 > 41) gameEnd = true;
+                if (wykonaj.to_2 > 41) gameEnd = true;
+            }
+            else
+            {
+                //showPawns();
+                swapBoardPawns(mainBoard, x - wykonaj.from_1, x - wykonaj.to_1);
+                swapBoardPawns(mainBoard, x - wykonaj.from_2, x - wykonaj.to_2);
+                swapPlayerPawns(playerPawns, mainBoard[wykonaj.from_1].field, mainBoard[wykonaj.to_1].field);
+                swapPlayerPawns(playerPawns, mainBoard[wykonaj.from_2].field, mainBoard[wykonaj.to_2].field);
+                showPawns();
+                //swapBoardPawns(mainBoard, wykonaj.from_1, wykonaj.to_2);
+                //swapPlayerPawns(playerPawns, wykonaj.from_1, wykonaj.to_2);
+                if (wykonaj.to_1 < 7) gameEnd = true;
+                if (wykonaj.to_2 < 7) gameEnd = true;
+                //showPawns();
+            }
+        }   
 
         possiblePassingPawns.Clear();
-
         findPossiblePassingField();
-        foreach (Pawn p in possiblePassingField)
-        {
-            if (p.pawnSymbol == playerSymbol)
-            {
-                if (displayData) Console.WriteLine("Adding move to field: " + p.field);
-                possiblePassingPawns.Add(p);
-                //possiblePassingPawns.Add(new Pawn(p));
-            }
-        }
-        if (displayData) Console.Write("Possible moves: " + possiblePassingPawns.Count);
+        Console.Write("Possible moves: " + possiblePassingPawns.Count);
+        //foreach (Pawn p in possiblePassingField)
+        //{
+        //    if (p.pawnSymbol == playerSymbol)
+        //    {
+        //        if (displayData) Console.WriteLine("Adding move to field: " + p.field);
+        //        possiblePassingPawns.Add(p);
+        //        //possiblePassingPawns.Add(new Pawn(p));
+        //    }
+        //}
+        //Console.Write("Possible moves: " + possiblePassingPawns.Count);
 
         //possiblePassingPawns.Sort((x, y) => y.field.CompareTo(x.field));
         Console.WriteLine();
@@ -445,11 +547,28 @@ class Gracz
     }
     public void swapPlayerPawns(Pawn[] pawns, int from, int to)
     {
+        //Console.WriteLine("from:" + from + " to:" + to + " pawns[0]:" + pawns[0].field +"");
         for (int i = 0; i < pawns.Length; i++)
         {
-            if (pawns[i].field == from)
+            if (pawns[i].field == mainBoard[from].field)
+            //if (pawns[i].field == from)
             {
+               // Console.WriteLine("CHANGE PAWN " + " field: " + mainBoard[to].field + " is now " + mainBoard[to].pawnSymbol  + " " + pawns[i].field  + " is now " + pawns[i].pawnSymbol + "");
                 pawns[i] = mainBoard[to];
+                pawns[i].pawnSymbol = mainBoard[to].pawnSymbol;
+            }
+        }
+    }
+    public void swapPlayerPawns(Pawn[] pawns, Pawn[] board, int from, int to)
+    {
+        for (int i = 0; i < pawns.Length; i++)
+        {
+            if (pawns[i].field == mainBoard[from].field)
+            //if (pawns[i].field == from)
+            {
+                //Console.WriteLine("CHANGE PAWN " + " field: " + mainBoard[to].field + " is now " + pawns[i].field + "" + mainBoard[to].pawnSymbol + " is now " + pawns[i].pawnSymbol + "");
+                pawns[i] = board[to];
+                //pawns[i].pawnSymbol = mainBoard[to].pawnSymbol;
             }
         }
     }
@@ -475,9 +594,19 @@ class Gracz
     {
         Console.WriteLine();
         Console.Write("Pionki, gracza : ");
-        for (int i=0; i<7; i++)
+        for (int i=0; i<playerPawns.Length; i++)
         {
             Console.Write(playerPawns[i].field + ":" + playerPawns[i].pawnSymbol + ", ");
+        }
+        Console.WriteLine();
+    }
+    public void showPawns(Pawn[] p)
+    {
+        Console.WriteLine();
+        Console.Write("Pionki, gracza : ");
+        for (int i = 0; i < 7; i++)
+        {
+            Console.Write(p[i].field + ":" + p[i].pawnSymbol + ", ");
         }
         Console.WriteLine();
     }
@@ -495,6 +624,7 @@ class Gracz
     }
     private void showBoard(Pawn[] plansza4)
     {
+        //showBoardbyNumbers();
         Console.WriteLine("\nPokaż plansze: " + playerName);
         for (int i = plansza4.Length - 1; i >= 0; i--)
         {
@@ -505,14 +635,35 @@ class Gracz
             }
         }
     }
+    private void showBoardbyNumbers()
+    {
+        Console.WriteLine("Pokaż plansze");
+        for (int i = mainBoard.Length - 1; i >= 0; i--)
+        {
+            if (mainBoard[i].field < 10)
+            {
+                Console.Write(" " + mainBoard[i].field + "  ");
+            }
+            else
+            {
+                Console.Write(mainBoard[i].field + "  ");
+            }
+            if (i % 7 == 0)
+            {
+                Console.WriteLine("");
+            }
+        }
+        Console.WriteLine("");
+    }
 }
+
 
 class Pawn
 {
     public int field = -1;
-    public char pawnSymbol; 
-    public int 
-        x = -1, 
+    public char pawnSymbol;
+    public int
+        x = -1,
         y = -1;
     public Pawn(int a, int b, char c)
     {
@@ -548,7 +699,6 @@ class Pawn
         this.y = pole % 7;
     }
 }
-
 class Move : IComparable<Move>
 {
     /// <summary>
