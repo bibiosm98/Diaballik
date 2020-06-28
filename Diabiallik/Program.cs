@@ -45,22 +45,22 @@ class Diaballik
         while (!gameEnd)
         {
             i++;
-            //gameEnd = Player_1.nextMove();
-            //showBoardbyNumbers();
-            //showBoard();
-            //reverseBoard();
+            gameEnd = Player_1.nextMove();
+            showBoardbyNumbers();
+            showBoard();
+            reverseBoard();
             //Console.Clear();
             if (displayData)
             {
             }
-            //System.Threading.Thread.Sleep(400);
+            //System.Threading.Thread.Sleep(400); 706550
             if (i>40)break;
             if (gameEnd) break;
             //showBoardbyNumbers();
             gameEnd = Player_2.nextMove();
             showBoardbyNumbers();
             showBoard();
-            //reverseBoard();
+            reverseBoard();
         }
         //showBoard();
         DateTime timeEnd = DateTime.Now;
@@ -260,32 +260,39 @@ class Gracz
         };
         int[] finish = new int[] { 49, 49, 49, 49, 0, 0, 0, 0};
         int[] jump = new int[] { 1, 7, 8, 6, -1, -7, -6, -8};
-            
-        if(playerSymbolUpper == 'X')
+
+        bool change = (playerSymbolUpper == 'X') ? true : false; //(change) ? y : 48-y
+        int go = 0;
+        if (true) //playerSymbolUpper == 'X')
         {
             for (int i = 0; i < 4; i++)
             {
                 for (int y = start[i]; y < finish[i]; y += jump[i])
                 {
+                    go = y;
+                    if (mainBoard[0].field == 48) go = 48 - y;
+                    Console.Write("  Y = " + y);
                     if (y % 7 == 6 || y % 7 == 0)
                     {
                         if (start[i] == 6) break;
                         if (start[i] == 1) break;
-                        if (mainBoard[y].pawnSymbol != '-' && mainBoard[y].pawnSymbol != playerSymbol) break;
-                        possiblePassingField.Add(new Pawn(mainBoard[y]));
+                        if (mainBoard[go].pawnSymbol != '-' && mainBoard[go].pawnSymbol != playerSymbol) break;
+                        possiblePassingField.Add(new Pawn(mainBoard[go].field, mainBoard[go].pawnSymbol));
                         break;
                     }
-                    if (mainBoard[y].pawnSymbol != '-' && mainBoard[y].pawnSymbol != playerSymbol)
+                    if (mainBoard[go].pawnSymbol != '-' && mainBoard[go].pawnSymbol != playerSymbol)
                     {
                         break;
                     }
-                    possiblePassingField.Add(new Pawn(mainBoard[y]));
+                    possiblePassingField.Add(new Pawn(mainBoard[go].field, mainBoard[go].pawnSymbol));
                 }
             }
             for (int i = 4; i < 8; i++)
             {
                 for (int y = start[i]; y >= finish[i]; y += jump[i])
                 {
+                    go = y;
+                    if (mainBoard[0].field == 48) go = 48 - y;
                     if (y < 0)
                     {
                         break;
@@ -294,14 +301,14 @@ class Gracz
                     {
                         if (start[i] == -6) break;
                         if (start[i] == -1) break;
-                        possiblePassingField.Add(new Pawn(mainBoard[y]));
+                        possiblePassingField.Add(new Pawn(mainBoard[go].field, mainBoard[go].pawnSymbol));
                         break;
                     }
-                    if (mainBoard[y].pawnSymbol != '-' && mainBoard[y].pawnSymbol != playerSymbol)
+                    if (mainBoard[go].pawnSymbol != '-' && mainBoard[go].pawnSymbol != playerSymbol)
                     {
                         break;
                     }
-                    possiblePassingField.Add(new Pawn(mainBoard[y]));
+                    possiblePassingField.Add(new Pawn(mainBoard[go].field, mainBoard[go].pawnSymbol));
                 }
             }
         }
@@ -444,9 +451,9 @@ class Gracz
     }
     public void makeMove()
     {
-        //int x = new Random().Next(playerMoves.Count);
+        int a = new Random().Next((playerMoves.Count>10) ? 5 : playerMoves.Count);
         int mov = new Random().Next(playerMoves.Count-1);
-        Move wykonaj = playerMoves[mov];
+        Move wykonaj = playerMoves[a];
         //foreach(Move m in playerMoves)
         //{
         //    Console.WriteLine("Adding new move: from1- " + m.from_1 + "  to1- " + m.to_1 + "  from2- " + m.from_2 + "  to2- " + m.to_2);
@@ -522,9 +529,22 @@ class Gracz
         if (displayData) Console.WriteLine("possiblePassingPawns:" + possiblePassingPawns.Count);
         Console.WriteLine();
         int random = new Random().Next(possiblePassingPawns.Count-1);
+
+        int newBallField = 0;
+        int oldBallField = 0;
+        if (mainBoard[0].field == 0)
+        {
+            newBallField = possiblePassingPawns[random].field;
+            oldBallField = ballPawn.field;
+        }
+        else
+        {
+            newBallField = 48 - possiblePassingPawns[random].field;
+            oldBallField = 48 - ballPawn.field;
+        }
         if (displayData) Console.WriteLine("random = " + random);
-        swapBoardPawns(mainBoard, ballPawn.field, possiblePassingPawns[random].field);
-        ballPawn = (Pawn)mainBoard[possiblePassingPawns[random].field];
+        swapBoardPawns(mainBoard, oldBallField, newBallField);
+        ballPawn = (Pawn)mainBoard[newBallField];
         if (displayData) Console.WriteLine("ball field = " + ballPawn.field);
         if (displayData) Console.WriteLine("swap field = " + possiblePassingPawns[random].field);
         //Pawn chosenPawn = null;
