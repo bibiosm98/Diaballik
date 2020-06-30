@@ -23,7 +23,7 @@ class Diaballik
     bool displayData = false;
     bool gameEnd = false;
     public Pawn[]
-        mainBoard = new Pawn[49];
+        gameBoard = new Pawn[49];
     public Gracz 
         Player_1, 
         Player_2;
@@ -31,9 +31,9 @@ class Diaballik
     {
         Console.WriteLine("Nowa Gra");
         newBoard();
-        Player_1 = new Gracz("Gracz_1", mainBoard, 'x');
-        reverseBoard();
-        Player_2 = new Gracz("Gracz_2", mainBoard, 'y');
+        Player_1 = new Gracz("Gracz_1", true, gameBoard, 'x');
+        //reverseBoard();
+        Player_2 = new Gracz("Gracz_2", false, gameBoard, 'y');
         reverseBoard();
         showBoard();
     }
@@ -48,7 +48,7 @@ class Diaballik
             gameEnd = Player_1.nextMove();
             showBoardbyNumbers();
             showBoard();
-            reverseBoard();
+            //reverseBoard();
             //Console.Clear();
             if (displayData)
             {
@@ -58,9 +58,9 @@ class Diaballik
             if (gameEnd) break;
             //showBoardbyNumbers();
             gameEnd = Player_2.nextMove();
-            showBoardbyNumbers();
+            //showBoardbyNumbers();
             showBoard();
-            reverseBoard();
+            //reverseBoard();
         }
         //showBoard();
         DateTime timeEnd = DateTime.Now;
@@ -70,17 +70,17 @@ class Diaballik
     private void newBoard()
     {
         Console.WriteLine("Inicjuj plansze");
-        for (int i = 0; i < mainBoard.Length; i++)
+        for (int i = 0; i < gameBoard.Length; i++)
         {
-            mainBoard[i] = new Pawn(i, '-');
+            gameBoard[i] = new Pawn(i, '-');
         }
     }
     private void showBoard()
     {
         Console.WriteLine("Pokaż plansze");
-        for (int i = mainBoard.Length - 1; i >= 0; i--)
+        for (int i = gameBoard.Length - 1; i >= 0; i--)
         {
-            Console.Write(mainBoard[i].pawnSymbol + "  ");
+            Console.Write(gameBoard[i].pawnSymbol + "  ");
             if (i % 7 == 0)
             {
                 Console.WriteLine("");
@@ -91,15 +91,15 @@ class Diaballik
     private void showBoardbyNumbers()
     {
         Console.WriteLine("Pokaż plansze");
-        for (int i = mainBoard.Length - 1; i >= 0; i--)
+        for (int i = gameBoard.Length - 1; i >= 0; i--)
         {
-            if (mainBoard[i].field < 10)
+            if (gameBoard[i].field < 10)
             {
-                Console.Write(" " + mainBoard[i].field + "  ");
+                Console.Write(" " + gameBoard[i].field + "  ");
             }
             else
             {
-                Console.Write(mainBoard[i].field + "  ");
+                Console.Write(gameBoard[i].field + "  ");
             }
             if (i % 7 == 0)
             {
@@ -110,7 +110,7 @@ class Diaballik
     }
     private void reverseBoard()
     {
-        Array.Reverse(mainBoard);
+        Array.Reverse(gameBoard);
     }
 }
 
@@ -120,8 +120,10 @@ class Gracz
     public char playerSymbol, playerSymbolUpper;
     string playerName = "";
     public Pawn ballPawn;
-    public Pawn[] playerPawns = new Pawn[7];
-    public Pawn[] mainBoard;
+    public Pawn[]
+        mainBoard,
+        playerPawns = new Pawn[7],
+        playerBoard = new Pawn[49];
 
     //public Pawn[] possiblePAssingField; 
     public List<dynamic> 
@@ -131,18 +133,21 @@ class Gracz
         possiblePassingField = new List<dynamic>(), // możliwe miejsce podania piłki
         possiblePassingPawns = new List<dynamic>(); // możliwe miejsce podania piłki gdzie stoją pionki
     bool gameEnd = false;
-    public Gracz(string name, Pawn[] p, char symbol)
+    public Gracz(string name, bool playerOne, Pawn[] gameBoard, char symbol)
     {
         this.playerSymbol = symbol;
         this.playerSymbolUpper = Char.ToUpper(playerSymbol);
         this.playerName = name;
-        this.mainBoard = p;
+        this.mainBoard = gameBoard;
 
-        for (int i = 0; i < 7; i++)
+        int start = 0;
+        if (!playerOne) start = 42;
+        for (int i = start; i < start + 7; i++)
         {
-            mainBoard[i] = playerPawns[i] = new Pawn(mainBoard[i].field, playerSymbol);
+            //Console.Write("i = " + i);
+            mainBoard[i] = playerPawns[i-start] = new Pawn(mainBoard[i].field, playerSymbol);
+            if(i%7==3) ballPawn = mainBoard[i] = playerPawns[i-start] = new Pawn(mainBoard[i].field, playerSymbolUpper);
         }
-        ballPawn = mainBoard[3] = playerPawns[3] = new Pawn(mainBoard[3].field, playerSymbolUpper);
     }
     public bool nextMove()
     {
