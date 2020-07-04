@@ -89,6 +89,7 @@ class Diaballik
     {
         Console.WriteLine("START_GAME WITH PREDICTION");
         DateTime timeStart = DateTime.Now;
+        Gracz.firstPredict(Player_1, Player_2);
         int i = 0;
         while (!gameEnd)
         {
@@ -199,6 +200,11 @@ class Gracz
 
     public int 
         oldBallField;
+    public static myTree firstPredict(Gracz P_1, Gracz P_2)
+    {
+
+        return new myTree();
+    }
     public Gracz(string name, bool playerOne, Pawn[] gameBoard, char symbol)
     {
         this.playerSymbol = symbol;
@@ -246,31 +252,24 @@ class Gracz
     }
     public myTree predict()
     {
+        copyCurrentBoard();
+
         return new myTree();
     }
     public bool nextPredictedMove()
     {
-        return false;
+        copyCurrentBoard();
+
+        return gameEnd;
     }
     public bool nextMove()
     {
         copyCurrentBoard();
-        if(displayData)Console.WriteLine("NEW MOVE " + playerSymbolUpper);
 
-
-
-        //showBoard();
-        //showPawns();
         availableMoves();
         rateMoves();
         makeMove();
-        //showPawns();
-        //showBoard(playerBoard);
-        //showBoardbyNumbers(playerBoard);
         passBall();
-        //showBoard();
-
-
 
         setBoardAfterMove();
         return gameEnd;
@@ -801,6 +800,15 @@ class Move : IComparable<Move>
     public override string ToString()
     {
         return base.ToString() + " " + from_1 + ":" + to_1 + ", " + from_2 + ":" + to_2 + " score = " + score;
+    }
+}
+class MoveWithBall
+{
+    Move move;
+
+    public MoveWithBall()
+    {
+
     }
 }
 class myTree
