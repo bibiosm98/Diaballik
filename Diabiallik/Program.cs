@@ -223,14 +223,17 @@ class Player
             Console.WriteLine("P.playerMoves.Count;" + P.playerMoves.Count);
             for (int y=0; y<P.playerMoves.Count; y++)
             {
-                moves = P.deepCopyMoves(P.playerMoves);
-                P.makeMove(moves[y]);
+                P.copyCurrentBoard();
+                //moves = P.deepCopyMoves(P.playerMoves);
+                P.makeMove(P.playerMoves[y]);
                 P.ratePassingBall();
 
-
+                Pawn[] copiedBoard = P.deepCopyBoard(P.playerBoard);
+                
                 for (int z = 0; z < P.possiblePassingPawns.Count; z++)
                 {
                     P.passBall(P.possiblePassingPawns[z]);
+                    //Console.WriteLine("y = " + y + " z = " + z );
                     tree.fullMove.Add(
                         new myTree(
                             new Move(
@@ -241,12 +244,13 @@ class Player
                                 P.oldBallField,
                                 P.newBallPawn.field
                     )));
+                    P.playerBoard = P.deepCopyBoard(copiedBoard);
                 }
+                //P.playerBoard = P.deepCopyBoard(copiedBoard);
             }
             P.showBoard(P.playerBoard);
-            Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI" + tree.fullMove.Count);
+            Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI =  " + tree.fullMove.Count);
         }
-
         return tree;
     }
     public Player(string name, bool playerOne, Pawn[] gameBoard, char symbol)
@@ -303,7 +307,7 @@ class Player
     public bool nextPredictedMove()
     {
         copyCurrentBoard();
-
+        makeMove();
         return gameEnd;
     }
     public bool nextMove()
@@ -326,6 +330,17 @@ class Player
         rateMoves();
         makeMove();
         passBall();
+
+        setBoardAfterMove();
+        return gameEnd;
+    }
+    public bool nextMove(bool realPlayer, int[] move)
+    {
+
+        copyCurrentBoard();
+
+        makeMove(new Move(move[0], move[1], move[2], move[3]));
+        passBall(move[5]);
 
         setBoardAfterMove();
         return gameEnd;
@@ -607,29 +622,39 @@ class Player
     }
     private void passBall(Pawn pawn)
     {
-        if (displayData) Console.WriteLine("PASSBALL");
-        if (displayData) Console.WriteLine("possiblePassingPawns:" + possiblePassingPawns.Count);
-        if (displayData) Console.WriteLine();
-        int random = new Random().Next(possiblePassingPawns.Count - 1);
-        random = 0;
         int newBallField = 0;
         if (mainBoard[0].field == 0)
         {
-            newBallField = possiblePassingPawns[random].field;
+            newBallField = pawn.field;
             oldBallField = newBallPawn.field;
         }
         else // Pass ball in main board, for player_2
         {
-            newBallField = 48 - possiblePassingPawns[random].field;
+            newBallField = 48 - pawn.field;
             oldBallField = 48 - newBallPawn.field;
         }
-        if (displayData) Console.WriteLine("random = " + random);
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
         if (newBallField > 41) gameEnd = true;
-        if (displayData) Console.WriteLine("ball field = " + newBallPawn.field);
-        if (displayData) Console.WriteLine("swap field = " + possiblePassingPawns[random].field);
-        playerMoves.Clear();
+        //playerMoves.Clear();
+    }
+    private void passBall(int moveBall)
+    {
+        int newBallField = 0;
+        if (mainBoard[0].field == 0)
+        {
+            newBallField = moveBall;
+            oldBallField = newBallPawn.field;
+        }
+        else // Pass ball in main board, for player_2
+        {
+            newBallField = 48 - moveBall;
+            oldBallField = 48 - newBallPawn.field;
+        }
+        swapBoardPawns(playerBoard, oldBallField, newBallField);
+        newBallPawn = (Pawn)playerBoard[newBallField];
+        if (newBallField > 41) gameEnd = true;
+        //playerMoves.Clear();
     }
     private void ratePassingBall()
     {
@@ -918,13 +943,14 @@ class Move : IComparable<Move>
 
     public override string ToString()
     {
+        if(this.ball_from>0 && this.ball_from<49) return base.ToString() + " " + from_1 + ":" + to_1 + ", " + from_2 + ":" + to_2 + ", " + ball_from + ":" + ball_to + " score = " + score;
         return base.ToString() + " " + from_1 + ":" + to_1 + ", " + from_2 + ":" + to_2 + " score = " + score;
     }
 }
 class myTree
 {
     public List<dynamic>
-        fullMove = new List<dynamic>(360); // All moves * possible passing ball moves
+        fullMove = new List<dynamic>(); // All moves * possible passing ball moves   360 max 
     public int treeDeep = 0;
     public Move move;
     public myTree(Move move) {
