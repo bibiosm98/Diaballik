@@ -14,8 +14,8 @@ namespace Diabiallik
         {
             Console.WriteLine("Diaballik");
             Diaballik diaballik = new Diaballik();
-            //diaballik.start();
-            diaballik.gameWithPrediction();
+            diaballik.start();
+            ///diaballik.gameWithPrediction();
         }
     }
 }
@@ -48,9 +48,16 @@ class Diaballik
         Console.WriteLine("START_GAME");
         DateTime timeStart = DateTime.Now;
         int i = 0;
+        int[][] tab = new int[2][];
+
+        tab[0] = new int[6] { 2, 9, 1, 8, 3, 9 };
+        tab[1] = new int[6] { 5, 12, 8, 15, 9, 15 };
+            //{, , , , , },
+            //{, , , , , },
+            //{, , , , , },
+
         while (!gameEnd)
         {
-            i++;
             gameEnd = Player_1.nextMove();
             //showBoardbyNumbers();
             //Console.WriteLine("Diaballik start() player 1");
@@ -68,7 +75,8 @@ class Diaballik
                 break;
             }
             //showBoardbyNumbers();
-            gameEnd = Player_2.nextMove();
+            //gameEnd = Player_2.nextMove();
+            gameEnd = Player_2.nextMove(true, tab[i]);
             if (gameEnd)
             {
                 //Console.Clear();
@@ -79,6 +87,7 @@ class Diaballik
             //showBoardbyNumbers();
             //showBoard();
             //reverseBoard();
+            i++;
         }
         //showBoard();
         DateTime timeEnd = DateTime.Now;
@@ -336,12 +345,14 @@ class Player
     }
     public bool nextMove(bool realPlayer, int[] move)
     {
-
+        lastMove = new Move(move[0], move[1], move[2], move[3], move[4], move[5]);
         copyCurrentBoard();
 
         makeMove(new Move(move[0], move[1], move[2], move[3]));
         passBall(move[5]);
-
+        Console.WriteLine("nextMove()??");
+        showBoard();
+        showBoard(playerBoard);
         setBoardAfterMove();
         return gameEnd;
     }
@@ -516,6 +527,7 @@ class Player
         }
         else
         {
+            //lastMove = new Move(wykonaj.from_1, wykonaj.to_1, wykonaj.from_2, wykonaj.to_2, 0, 0);
             swapBoardPawns(playerBoard, wykonaj.from_1, wykonaj.to_1);
             swapBoardPawns(playerBoard, wykonaj.from_2, wykonaj.to_2);
             swapPlayerPawns(playerPawns, playerBoard[wykonaj.from_1].field, playerBoard[wykonaj.to_1].field);
@@ -553,6 +565,8 @@ class Player
         int newBallField = 0;
         if (mainBoard[0].field == 0)
         {
+            //lastMove.ball_from = oldBallField;
+            //lastMove.ball_to = possiblePassingPawns[random].field;
             newBallField = possiblePassingPawns[random].field;
             oldBallField = newBallPawn.field;
         }
