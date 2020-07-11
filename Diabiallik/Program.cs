@@ -14,8 +14,8 @@ namespace Diabiallik
         {
             Console.WriteLine("Diaballik");
             Diaballik diaballik = new Diaballik();
-            diaballik.start();
-            ///diaballik.gameWithPrediction();
+            //diaballik.start();
+            diaballik.gameWithPrediction();
         }
     }
 }
@@ -48,11 +48,13 @@ class Diaballik
         Console.WriteLine("START_GAME");
         DateTime timeStart = DateTime.Now;
         int i = 0;
-        int[][] tab = new int[2][];
+        int[][] tab = new int[5][];
 
         tab[0] = new int[6] { 2, 9, 1, 8, 3, 9 };
         tab[1] = new int[6] { 5, 12, 8, 15, 9, 15 };
-            //{, , , , , },
+        tab[2] = new int[6] { 9, 16, 16, 23, 15, 23};
+        tab[3] = new int[6] { 15, 22, 22, 29, 23, 29};
+        tab[4] = new int[6] { 3, 10, 10, 17, 29, 17 };
             //{, , , , , },
             //{, , , , , },
 
@@ -71,17 +73,17 @@ class Diaballik
             {
                 //Console.Clear();
                 showBoard();
-                Console.WriteLine("X WON");
+                Console.WriteLine("X WON with " + i + " moves");
                 break;
             }
             //showBoardbyNumbers();
-            //gameEnd = Player_2.nextMove();
-            gameEnd = Player_2.nextMove(true, tab[i]);
+            gameEnd = Player_2.nextMove();
+            //gameEnd = Player_2.nextMove(true, tab[i]);
             if (gameEnd)
             {
                 //Console.Clear();
                 showBoard();
-                Console.WriteLine("Y WON");
+                Console.WriteLine("Y WON" + i + " moves");
                 break;
             }
             //showBoardbyNumbers();
@@ -98,14 +100,14 @@ class Diaballik
     {
         Console.WriteLine("START_GAME WITH PREDICTION");
         DateTime timeStart = DateTime.Now;
-        Player.firstPredict(Player_1, Player_2);
+        //Player.firstPredict(Player_1, Player_2);
         int i = 0;
         while (!gameEnd)
         {
             i++;
-            if(i>4) break;
-            movesTree = Player_1.predict();
-            gameEnd = Player_1.nextPredictedMove();
+            if(i>10) break;
+            movesTree = Player_1.predict(Player_1, Player_2, 3, new myTree(), true);
+            gameEnd = Player_1.nextMove();
             showBoard();
             if (gameEnd)
             {
@@ -116,7 +118,8 @@ class Diaballik
             }
             //movesTree = Player_1.predict();
             //gameEnd = Player_2.nextPredictedMove();
-            //showBoard();
+            gameEnd = Player_2.nextMove();
+            showBoard();
             if (gameEnd)
             {
                 //Console.Clear();
@@ -127,10 +130,6 @@ class Diaballik
         }
         DateTime timeEnd = DateTime.Now;
         Console.WriteLine("KONIEC: " + timeEnd.Subtract(timeStart));
-    }
-    public void predict()
-    {
-
     }
     private void newBoard()
     {
@@ -209,59 +208,10 @@ class Player
 
     public int 
         oldBallField;
-    public static myTree firstPredict(Player P_1, Player P_2)
-    {
-        myTree tree = new myTree();
-        Player P;
-        bool player1 = true;
-        for(int i=0; i<1; i++)
-        {
-            if (player1) {
-                P = P_1;
-                
-                player1 = false;
-            }else
-            {
-                P = P_2;
-                player1 = true;
-            }
-            P.copyCurrentBoard();
-            P.availableMoves();
-            P.rateMoves();
-            List<dynamic> moves = P.deepCopyMoves(P.playerMoves);
-            Console.WriteLine("P.playerMoves.Count;" + P.playerMoves.Count);
-            for (int y=0; y<P.playerMoves.Count; y++)
-            {
-                P.copyCurrentBoard();
-                //moves = P.deepCopyMoves(P.playerMoves);
-                P.makeMove(P.playerMoves[y]);
-                P.ratePassingBall();
-
-                Pawn[] copiedBoard = P.deepCopyBoard(P.playerBoard);
-                
-                for (int z = 0; z < P.possiblePassingPawns.Count; z++)
-                {
-                    P.passBall(P.possiblePassingPawns[z]);
-                    //Console.WriteLine("y = " + y + " z = " + z );
-                    tree.fullMove.Add(
-                        new myTree(
-                            new Move(
-                                moves[y].from_1,
-                                moves[y].to_1,
-                                moves[y].from_2,
-                                moves[y].to_2,
-                                P.oldBallField,
-                                P.newBallPawn.field
-                    )));
-                    P.playerBoard = P.deepCopyBoard(copiedBoard);
-                }
-                //P.playerBoard = P.deepCopyBoard(copiedBoard);
-            }
-            P.showBoard(P.playerBoard);
-            Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI =  " + tree.fullMove.Count);
-        }
-        return tree;
-    }
+    //public static myTree firstPredict(Player P_1, Player P_2)
+    //{
+        
+    //}
     public Player(string name, bool playerOne, Pawn[] gameBoard, char symbol)
     {
         this.playerSymbol = symbol;
@@ -307,16 +257,60 @@ class Player
             }
         }
     }
-    public myTree predict()
+    public myTree predict(Player P_1, Player P_2, int deep, myTree tree, bool start)
     {
+        if (deep == 0) return tree;
         copyCurrentBoard();
+        Player P = P_1;
 
-        return new myTree();
+        P.copyCurrentBoard();
+        P.availableMoves();
+        P.rateMoves();
+        Console.WriteLine("SCORE = " + P.playerMoves[3].score);
+        List<dynamic> moves = P.deepCopyMoves(P.playerMoves);
+        Console.WriteLine("P.playerMoves.Count;" + P.playerMoves.Count + " : " + moves.Count);
+            
+        for (int y = 0; y < moves.Count; y++)
+        {
+            P.copyCurrentBoard();
+            //moves = P.deepCopyMoves(P.playerMoves);
+            P.makeMove(P.playerMoves[y]);
+            P.ratePassingBall();
+
+            Pawn[] copiedBoard = P.deepCopyBoard(P.playerBoard);
+
+            for (int z = 0; z < P.possiblePassingPawns.Count; z++)
+            {
+                P.passBall(P.possiblePassingPawns[z]);
+                //Console.WriteLine("y = " + y + " z = " + z );
+                tree.fullMove.Add(
+                    new myTree(
+                        new Move(
+                            moves[y].from_1,
+                            moves[y].to_1,
+                            moves[y].from_2,
+                            moves[y].to_2,
+                            P.oldBallField,
+                            P.newBallPawn.field,
+                            moves[y].score
+                )));
+                //Console.WriteLine(new Move(moves[y].from_1, moves[y].to_1, moves[y].from_2, moves[y].to_2, P.oldBallField, P.newBallPawn.field, moves[y].score));
+                P.playerBoard = P.deepCopyBoard(copiedBoard);
+            }
+            //P.playerBoard = P.deepCopyBoard(copiedBoard);
+        }
+        P.showBoard(P.playerBoard);
+        Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI =  " + tree.fullMove.Count);
+        deep -= 1;
+        // deep-- wewnątrz funkcji nie działa XDDD
+        return predict(P_2, P_1, deep, tree, false);
     }
     public bool nextPredictedMove()
     {
         copyCurrentBoard();
-        makeMove();
+        makeMove(tree.nextMove); /// MAKE PREDICTED MOVe, USE TREE
+        passBall(tree.nextMove.ball_to);
+        setBoardAfterMove();
         return gameEnd;
     }
     public bool nextMove()
@@ -350,9 +344,6 @@ class Player
 
         makeMove(new Move(move[0], move[1], move[2], move[3]));
         passBall(move[5]);
-        Console.WriteLine("nextMove()??");
-        showBoard();
-        showBoard(playerBoard);
         setBoardAfterMove();
         return gameEnd;
     }
@@ -731,6 +722,32 @@ class Player
     private List<dynamic> deepCopyMoves(List<dynamic> moves)
     {
         List<dynamic> copiedMoves = new List<dynamic>();
+
+        if (moves[0].ball_to != null && moves[0].score != 0)
+        {
+            for (int i = 0; i < moves.Count; i++)
+            {
+                copiedMoves.Add(new Move(moves.ElementAt(i).from_1, moves.ElementAt(i).to_1, moves.ElementAt(i).from_2, moves.ElementAt(i).to_2, moves.ElementAt(i).ball_from, moves.ElementAt(i).ball_to, moves.ElementAt(i).score)); // głębokie kopiowanie planszy
+            }
+            return copiedMoves;
+        }
+
+        if (moves[0].ball_to != null)
+        {
+            for (int i = 0; i < moves.Count; i++)
+            {
+                copiedMoves.Add(new Move(moves.ElementAt(i).from_1, moves.ElementAt(i).to_1, moves.ElementAt(i).from_2, moves.ElementAt(i).to_2, moves.ElementAt(i).ball_from, moves.ElementAt(i).ball_to)); // głębokie kopiowanie planszy
+            }
+            return copiedMoves;
+        }
+        if (moves[0].score != 0)
+        {
+            for (int i = 0; i < moves.Count; i++)
+            {
+                copiedMoves.Add(new Move(moves.ElementAt(i).from_1, moves.ElementAt(i).to_1, moves.ElementAt(i).from_2, moves.ElementAt(i).to_2, moves.ElementAt(i).score)); // głębokie kopiowanie planszy
+            }
+            return copiedMoves;
+        }
         for (int i = 0; i < moves.Count; i++)
         {
             copiedMoves.Add(new Move(moves.ElementAt(i).from_1, moves.ElementAt(i).to_1, moves.ElementAt(i).from_2, moves.ElementAt(i).to_2)); // głębokie kopiowanie planszy
@@ -937,6 +954,14 @@ class Move : IComparable<Move>
         this.from_2 = j;
         this.to_2 = h;
     }
+    public Move(int i, int y, int j, int h, int score)
+    {
+        this.from_1 = i;
+        this.to_1 = y;
+        this.from_2 = j;
+        this.to_2 = h;
+        this.score = score;
+    }
     public Move(int i, int y, int j, int h, int n, int m)
     {
         this.from_1 = i;
@@ -945,6 +970,16 @@ class Move : IComparable<Move>
         this.to_2 = h;
         this.ball_from = n;
         this.ball_to = m;
+    }
+    public Move(int i, int y, int j, int h, int n, int m, int score)
+    {
+        this.from_1 = i;
+        this.to_1 = y;
+        this.from_2 = j;
+        this.to_2 = h;
+        this.ball_from = n;
+        this.ball_to = m;
+        this.score = score;
     }
 
     public int CompareTo([AllowNull] Move move)
@@ -966,9 +1001,9 @@ class myTree
     public List<dynamic>
         fullMove = new List<dynamic>(); // All moves * possible passing ball moves   360 max 
     public int treeDeep = 0;
-    public Move move;
+    public Move nextMove;
     public myTree(Move move) {
-        this.move = move;
+        this.nextMove = move;
     }
     public myTree()
     {
