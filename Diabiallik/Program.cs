@@ -548,9 +548,6 @@ class Player
     private void passBall()
     {
         ratePassingBall();
-        if (displayData) Console.WriteLine("PASSBALL");
-        if (displayData) Console.WriteLine("possiblePassingPawns:" + possiblePassingPawns.Count);
-        if (displayData) Console.WriteLine();
         int random = new Random().Next(possiblePassingPawns.Count-1);
         random = 0;
         int newBallField = 0;
@@ -562,7 +559,6 @@ class Player
             oldBallField = newBallPawn.field;
             lastMove.ball_from = newBallField;
             lastMove.ball_to = oldBallField;
-            Console.WriteLine("NEW = "  + newBallField + "OLD = " + oldBallField);
         }
         else // Pass ball in main board, for player_2
         { 
@@ -571,12 +567,9 @@ class Player
             lastMove.ball_from = newBallField;
             lastMove.ball_to = oldBallField;
         }
-        if (displayData) Console.WriteLine("random = " + random);
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
         if (newBallField > 41) gameEnd = true;
-        if (displayData) Console.WriteLine("ball field = " + newBallPawn.field);
-        if (displayData) Console.WriteLine("swap field = " + possiblePassingPawns[random].field);
         //Pawn chosenPawn = null;
         //int localScore = 0;
         //bool go = false;
