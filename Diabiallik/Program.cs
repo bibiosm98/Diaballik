@@ -104,10 +104,12 @@ class Diaballik
         int i = 0;
         while (!gameEnd)
         {
+            Player_1.counter = 0;
             i++;
             if(i>10) break;
-            movesTree = Player_1.predict(Player_1, Player_2, 3, new myTree(), true);
+            //movesTree = Player_1.predict(Player_1, Player_2, 3, new myTree(), true);
             gameEnd = Player_1.nextMove();
+            Console.WriteLine(Player_1.lastMove);
             showBoard();
             if (gameEnd)
             {
@@ -180,6 +182,8 @@ class Diaballik
 
 class Player
 {
+
+    public int counter = 0;
     public char 
         playerSymbol, 
         playerSymbolUpper;
@@ -261,6 +265,7 @@ class Player
     }
     public myTree predict(Player P_1, Player P_2, int deep, myTree tree, bool start)
     {
+        counter++;
         if (deep == 0) return tree;
         copyCurrentBoard();
         Player P = P_1;
@@ -268,11 +273,12 @@ class Player
         P.copyCurrentBoard();
         P.availableMoves();
         P.rateMoves();
-        Console.WriteLine("SCORE = " + P.playerMoves[3].score);
+        //Console.WriteLine("SCORE = " + P.playerMoves[3].score);
         List<dynamic> moves = P.deepCopyMoves(P.playerMoves);
-        Console.WriteLine("P.playerMoves.Count;" + P.playerMoves.Count + " : " + moves.Count);
+        //Console.WriteLine("P.playerMoves.Count;" + P.playerMoves.Count + " : " + moves.Count);
             
-        for (int y = 0; y < moves.Count; y++)
+        //for (int y = 0; y < moves.Count; y++)
+        for (int y = 0; y < 10; y++)
         {
             P.copyCurrentBoard();
             //moves = P.deepCopyMoves(P.playerMoves);
@@ -301,15 +307,20 @@ class Player
             }
             //P.playerBoard = P.deepCopyBoard(copiedBoard);
         }
-        P.showBoard(P.playerBoard);
-        Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI =  " + tree.fullMove.Count);
+        //P.showBoard(P.playerBoard);
+        //Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI =  " + tree.fullMove.Count);
         deep -= 1;
         // deep-- wewnątrz funkcji nie działa XDDD
-        return predict(P_2, P_1, deep, tree, false);
+        for(int i=0; i<tree.fullMove.Count; i++)
+        {
+            predict(P_2, P_1, deep, tree.fullMove[i], false);
+        }
+        return tree;
     }
     public bool nextPredictedMove()
     {
         copyCurrentBoard();
+        tree.nextMove = tree.fullMove[1];
         makeMove(tree.nextMove); /// MAKE PREDICTED MOVe, USE TREE
         passBall(tree.nextMove.ball_to);
         setBoardAfterMove();
@@ -317,6 +328,7 @@ class Player
     }
     public bool nextMove()
     {
+        Console.WriteLine("COUNTER = " + counter);
         copyCurrentBoard(); // I TO
 
         availableMoves();
@@ -559,15 +571,15 @@ class Player
             //lastMove.ball_to = possiblePassingPawns[random].field;
             newBallField = possiblePassingPawns[random].field;
             oldBallField = newBallPawn.field;
-            lastMove.ball_from = newBallField;
-            lastMove.ball_to = oldBallField;
+            lastMove.ball_to = newBallField;
+            lastMove.ball_from = oldBallField;
         }
         else // Pass ball in main board, for player_2
         { 
             newBallField = 48 - possiblePassingPawns[random].field;
             oldBallField = 48 - newBallPawn.field;
-            lastMove.ball_from = newBallField;
-            lastMove.ball_to = oldBallField;
+            lastMove.ball_to = newBallField;
+            lastMove.ball_from = oldBallField;
         }
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
@@ -632,15 +644,15 @@ class Player
         {
             newBallField = pawn.field;
             oldBallField = newBallPawn.field;
-            lastMove.ball_from = newBallField;
-            lastMove.ball_to = oldBallField;
+            lastMove.ball_to = newBallField;
+            lastMove.ball_from = oldBallField;
         }
         else // Pass ball in main board, for player_2
         {
             newBallField = 48 - pawn.field;
             oldBallField = 48 - newBallPawn.field;
-            lastMove.ball_from = newBallField;
-            lastMove.ball_to = oldBallField;
+            lastMove.ball_to = newBallField;
+            lastMove.ball_from = oldBallField;
         }
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
@@ -654,15 +666,15 @@ class Player
         {
             newBallField = moveBall;
             oldBallField = newBallPawn.field;
-            lastMove.ball_from = newBallField;
-            lastMove.ball_to = oldBallField;
+            lastMove.ball_to = newBallField;
+            lastMove.ball_from = oldBallField;
         }
         else // Pass ball in main board, for player_2
         {
             newBallField = 48 - moveBall;
             oldBallField = 48 - newBallPawn.field;
-            lastMove.ball_from = newBallField;
-            lastMove.ball_to = oldBallField;
+            lastMove.ball_to = newBallField;
+            lastMove.ball_from = oldBallField;
         }
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
