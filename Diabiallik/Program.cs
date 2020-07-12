@@ -14,8 +14,8 @@ namespace Diabiallik
         {
             Console.WriteLine("Diaballik");
             Diaballik diaballik = new Diaballik();
-            diaballik.start();
-            //diaballik.gameWithPrediction();
+            //diaballik.start();
+            diaballik.gameWithPrediction();
         }
     }
 }
@@ -219,6 +219,7 @@ class Player
         this.playerName = name;
         this.mainBoard = gameBoard;
         this.playerOne = playerOne;
+        this.lastMove = new Move(0, 0, 0, 0, 0, 0);
 
         int start = 0;
         if (!playerOne) start = 42;
@@ -242,6 +243,7 @@ class Player
         this.mainBoard = gameBoard;
         this.playerOne = playerOne;
         this.tree = tree;
+        this.lastMove = new Move(0,0,0,0,0,0);
 
         int start = 0;
         if (!playerOne) start = 42;
