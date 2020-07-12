@@ -14,8 +14,8 @@ namespace Diabiallik
         {
             Console.WriteLine("Diaballik");
             Diaballik diaballik = new Diaballik();
-            //diaballik.start();
-            diaballik.gameWithPrediction();
+            diaballik.start();
+            //diaballik.gameWithPrediction();
         }
     }
 }
@@ -77,8 +77,8 @@ class Diaballik
                 break;
             }
             //showBoardbyNumbers();
-            gameEnd = Player_2.nextMove();
-            //gameEnd = Player_2.nextMove(true, tab[i]);
+            //gameEnd = Player_2.nextMove();
+            gameEnd = Player_2.nextMove(true, tab[i]);
             if (gameEnd)
             {
                 //Console.Clear();
@@ -315,14 +315,14 @@ class Player
     }
     public bool nextMove()
     {
-        copyCurrentBoard();
+        copyCurrentBoard(); // I TO
 
         availableMoves();
         rateMoves();
         makeMove();
         passBall();
 
-        setBoardAfterMove();
+        setBoardAfterMove(); // TO
         return gameEnd;
     }
     public bool nextMove(int[] moves)
@@ -560,11 +560,16 @@ class Player
             //lastMove.ball_to = possiblePassingPawns[random].field;
             newBallField = possiblePassingPawns[random].field;
             oldBallField = newBallPawn.field;
+            lastMove.ball_from = newBallField;
+            lastMove.ball_to = oldBallField;
+            Console.WriteLine("NEW = "  + newBallField + "OLD = " + oldBallField);
         }
         else // Pass ball in main board, for player_2
         { 
             newBallField = 48 - possiblePassingPawns[random].field;
             oldBallField = 48 - newBallPawn.field;
+            lastMove.ball_from = newBallField;
+            lastMove.ball_to = oldBallField;
         }
         if (displayData) Console.WriteLine("random = " + random);
         swapBoardPawns(playerBoard, oldBallField, newBallField);
@@ -632,11 +637,15 @@ class Player
         {
             newBallField = pawn.field;
             oldBallField = newBallPawn.field;
+            lastMove.ball_from = newBallField;
+            lastMove.ball_to = oldBallField;
         }
         else // Pass ball in main board, for player_2
         {
             newBallField = 48 - pawn.field;
             oldBallField = 48 - newBallPawn.field;
+            lastMove.ball_from = newBallField;
+            lastMove.ball_to = oldBallField;
         }
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
@@ -650,11 +659,15 @@ class Player
         {
             newBallField = moveBall;
             oldBallField = newBallPawn.field;
+            lastMove.ball_from = newBallField;
+            lastMove.ball_to = oldBallField;
         }
         else // Pass ball in main board, for player_2
         {
             newBallField = 48 - moveBall;
             oldBallField = 48 - newBallPawn.field;
+            lastMove.ball_from = newBallField;
+            lastMove.ball_to = oldBallField;
         }
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
