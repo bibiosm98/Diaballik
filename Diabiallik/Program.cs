@@ -106,9 +106,9 @@ class Diaballik
         {
             Player_1.counter = 0;
             i++;
-            if(i>10) break;
-            //movesTree = Player_1.predict(Player_1, Player_2, 3, new myTree(), true);
-            gameEnd = Player_1.nextMove();
+            if(i>3) break;
+            gameEnd = Player_1.nextPredictedMove(Player_1, Player_2, 3, true);
+            //gameEnd = Player_1.nextPredictedMove(new Player(Player_1), new Player(Player_2), 3, true);
             Console.WriteLine(Player_1.lastMove);
             showBoard();
             if (gameEnd)
@@ -183,7 +183,10 @@ class Diaballik
 class Player
 {
 
-    public int counter = 0;
+    public int 
+        newBallField,
+        oldBallField,
+        counter = 0;
     public char 
         playerSymbol, 
         playerSymbolUpper;
@@ -210,12 +213,6 @@ class Player
     public myTree
         tree;
 
-    public int 
-        oldBallField;
-    //public static myTree firstPredict(Player P_1, Player P_2)
-    //{
-        
-    //}
     public Player(string name, bool playerOne, Pawn[] gameBoard, char symbol)
     {
         this.playerSymbol = symbol;
@@ -238,6 +235,8 @@ class Player
                 playerPawns[i - start] = new Pawn(mainBoard[i].field - start, playerSymbolUpper);
             }
         }
+        this.oldBallPawn = newBallPawn;
+        this.oldBallField = newBallPawn.field;
     }
     public Player(string name, bool playerOne, Pawn[] gameBoard, char symbol, myTree tree)
     {
@@ -245,6 +244,7 @@ class Player
         this.playerSymbolUpper = Char.ToUpper(playerSymbol);
         this.playerName = name;
         this.mainBoard = gameBoard;
+        this.playerBoard = deepCopyBoard(mainBoard);
         this.playerOne = playerOne;
         this.tree = tree;
         this.lastMove = new Move(0,0,0,0,0,0);
@@ -262,12 +262,29 @@ class Player
                 playerPawns[i - start] = new Pawn(mainBoard[i].field - start, playerSymbolUpper);
             }
         }
+        this.oldBallPawn = newBallPawn;
+        this.oldBallField = newBallPawn.field;
     }
-    public myTree predict(Player P_1, Player P_2, int deep, myTree tree, bool start)
+    public Player(Player p)
+    {
+        this.playerSymbol = p.playerSymbol;
+        this.playerSymbolUpper = Char.ToUpper(p.playerSymbol);
+        this.playerName = p.playerName;
+        this.mainBoard = deepCopyBoard(p.mainBoard);
+        this.playerBoard = deepCopyBoard(p.playerBoard);
+        this.playerPawns = deepCopyPlayerPawns(p.playerPawns);
+
+        this.playerOne = p.playerOne;
+        this.tree = p.tree;
+        this.lastMove = new Move(0, 0, 0, 0, 0, 0);
+        this.newBallPawn = p.newBallPawn;
+
+    }
+    public void predict(Player P_1, Player P_2, int deep, myTree tree, bool start)
     {
         counter++;
-        if (deep == 0) return tree;
-        copyCurrentBoard();
+        if (deep == 0) return;
+        //copyCurrentBoard();
         Player P = P_1;
 
         P.copyCurrentBoard();
@@ -278,7 +295,7 @@ class Player
         //Console.WriteLine("P.playerMoves.Count;" + P.playerMoves.Count + " : " + moves.Count);
             
         //for (int y = 0; y < moves.Count; y++)
-        for (int y = 0; y < 10; y++)
+        for (int y = 0; y < 5; y++)
         {
             P.copyCurrentBoard();
             //moves = P.deepCopyMoves(P.playerMoves);
@@ -286,7 +303,10 @@ class Player
             P.ratePassingBall();
 
             Pawn[] copiedBoard = P.deepCopyBoard(P.playerBoard);
-
+            int oldBall = oldBallField;
+            Console.WriteLine("old ball pawn = " + oldBallPawn.field);
+            Console.WriteLine("old ball field = " + oldBall);
+            Console.WriteLine("possiblePassingPawns = " + P.possiblePassingPawns.Count);
             for (int z = 0; z < P.possiblePassingPawns.Count; z++)
             {
                 P.passBall(P.possiblePassingPawns[z]);
@@ -299,30 +319,44 @@ class Player
                             moves[y].from_2,
                             moves[y].to_2,
                             P.oldBallField,
-                            P.newBallPawn.field,
+                            P.newBallField,
+                            //P.newBallPawn.field,
+                            //oldBall,
+                            //possiblePassingPawns[z].field,
                             moves[y].score
                 )));
+                //newBallField = oldBallField;
+                newBallPawn = oldBallPawn;
+                Console.WriteLine("old ball pawn = " + oldBallPawn.field + " new pawn = " + newBallPawn.field);
+                Console.WriteLine("old ball field = " + oldBallField + " new field = " + newBallField);
                 //Console.WriteLine(new Move(moves[y].from_1, moves[y].to_1, moves[y].from_2, moves[y].to_2, P.oldBallField, P.newBallPawn.field, moves[y].score));
+                Console.WriteLine(new Move(moves[y].from_1, moves[y].to_1, moves[y].from_2, moves[y].to_2, P.oldBallField, P.newBallField, moves[y].score));
                 P.playerBoard = P.deepCopyBoard(copiedBoard);
             }
             //P.playerBoard = P.deepCopyBoard(copiedBoard);
         }
         //P.showBoard(P.playerBoard);
         //Console.WriteLine("ILOŚĆ RUCHOW Z PODANIEM PIŁKI =  " + tree.fullMove.Count);
-        deep -= 1;
-        // deep-- wewnątrz funkcji nie działa XDDD
         for(int i=0; i<tree.fullMove.Count; i++)
         {
-            predict(P_2, P_1, deep, tree.fullMove[i], false);
+            predict(P_2, P_1, deep-1, tree.fullMove[i], false);
+            //predict(new Player(P_2), new Player(P_1), deep, tree.fullMove[i], false);
         }
-        return tree;
+        return;
     }
-    public bool nextPredictedMove()
+    public bool nextPredictedMove(Player P_1, Player P_2, int deep, bool start)
     {
+        tree = new myTree();
         copyCurrentBoard();
-        tree.nextMove = tree.fullMove[1];
-        makeMove(tree.nextMove); /// MAKE PREDICTED MOVe, USE TREE
-        passBall(tree.nextMove.ball_to);
+
+        predict(new Player(P_1), new Player(P_2), deep, tree, true);
+        Console.WriteLine("NEXT MOVE = " + tree.fullMove[1].nextMove);
+        Move move = tree.fullMove[1].nextMove;
+        int[] m = new int[6] { move.from_1, move.to_1, move.from_2, move.to_2, move.ball_from, move.ball_to};
+        //makeMove(true, m); /// MAKE PREDICTED MOVe, USE TREE
+        nextMove(true, m);
+        passBall(m[5]);
+
         setBoardAfterMove();
         return gameEnd;
     }
@@ -563,6 +597,8 @@ class Player
     {
         ratePassingBall();
         int random = new Random().Next(possiblePassingPawns.Count-1);
+        int oneOfThree = new Random().Next(3);
+        if (possiblePassingPawns.Count > 3) random = oneOfThree;
         random = 0;
         int newBallField = 0;
         if (mainBoard[0].field == 0)
@@ -584,67 +620,15 @@ class Player
         swapBoardPawns(playerBoard, oldBallField, newBallField);
         newBallPawn = (Pawn)playerBoard[newBallField];
         if (newBallField > 41) gameEnd = true;
-        //Pawn chosenPawn = null;
-        //int localScore = 0;
-        //bool go = false;
-        //foreach(Pawn pawn in possiblePassingPawns)
-        //{
-        //    foreach (Move move in playerMoves)
-        //    {
-        //        if (pawn.pawnSymbol == playerSymbol && move.score > localScore && move.to_2 == pawn.field)
-        //        {
-        //            Console.WriteLine();
-        //            Console.WriteLine("MOVEEE  score" + move.score + ", " + move.to_2 + ", " + pawn.field);
-        //            localScore = move.score;
-        //            chosenPawn = pawn;
-        //        }
-        //    }
-        //}
-        //foreach (Pawn p in playerBoard)
-        //{
-        //    if (p.field == chosenPawn.field)
-        //    {
-        //        go = true;
-        //        chosenPawn = p;
-        //        Console.WriteLine("CHANGING PAWNS " + p.field);
-        //        //Console.WriteLine("chosen =  " + chosenPawn.field);
-        //    }
-        //}
-        //Console.WriteLine("Moves " + possiblePassingPawns.Count);
-        //Console.WriteLine("score " + localScore);
-        ////if (chosenPawn != null) {
-        //    if (go)
-        //    {
-        //        Console.WriteLine("PASSING BALL: from - ");
-        //    //chosenPawn.pawnSymbol = playerSymbolUpper;
-        //    //playerBoard[ballPawn.field].pawnSymbol = playerSymbol;
-        //    //for (int i = 0; i < playerMoves.Count; i++)
-        //    //{
-        //    //    if (playerMoves[i].to_2 == playerBoard[ballPawn.field].field)
-        //    //    {
-        //    //        playerMoves[i] = new Pawn(chosenPawn.field, chosenPawn.pawnSymbol);
-        //    //    }
-        //    //}
-        //    //ballPawn.field = chosenPawn.field;
-
-        //        swapBoardPawns(playerBoard, ballPawn.field, chosenPawn.field);
-        //    }
-        ////chosenPawn.pawnSymbol = playerSymbolUpper;
-        ////ballPawn.pawnSymbol = playerSymbol;
-        ////playerBoard.ElementAt(chosenPawn.field).pawnSymbol = playerSymbolUpper;
-        ////playerBoard.ElementAt(ballPawn.field).pawnSymbol = playerSymbol;
-        ////playerBoard.ElementAt(ballPawn.field).field = chosenPawn.field;
-
+        
         playerMoves.Clear();
     }
     private void passBall(Pawn pawn)
     {
-        int newBallField = 0;
         if (mainBoard[0].field == 0)
         {
-            newBallField = pawn.field;
             oldBallField = newBallPawn.field;
-            lastMove.ball_to = newBallField;
+            lastMove.ball_to = pawn.field;
             lastMove.ball_from = oldBallField;
         }
         else // Pass ball in main board, for player_2
@@ -683,17 +667,7 @@ class Player
     }
     private void ratePassingBall()
     {
-        //foreach(Pawn p in possiblePassingPawns)
-        //{
-        //    Console.Write(p.field + ", ");
-        //}
         possiblePassingPawns.Sort((x, y) => y.field.CompareTo(x.field));
-
-        //Console.WriteLine("SORT:");
-        //foreach (Pawn p in possiblePassingPawns)
-        //{
-        //    Console.Write(p.field + ", ");
-        //}
     }
     private void swapBoardPawns(Pawn[] board, int from, int to)
     {
